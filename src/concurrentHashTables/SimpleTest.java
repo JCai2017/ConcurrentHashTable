@@ -12,5 +12,12 @@ public class SimpleTest {
 		HashTableTiming.removeElements(testHashMap);
 		Assert.assertEquals(0, testHashMap.javaHashMap.size());
 	}
+	
+	@Test
+	public void testCoarseChainHashMap() {
+		CoarseGrainedChainHashing testHashMap = new CoarseGrainedChainHashing();
+		HashTableTiming.addElements(testHashMap);
+		HashTableTiming.removeElements(testHashMap);
+	}
 
 }
