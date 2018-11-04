@@ -8,10 +8,13 @@ public class HashTableTiming {
 		CoarseGrainedChainHashing coarseChainTable = new CoarseGrainedChainHashing();
 		FineGrainedChainHashing fineChainTable = new FineGrainedChainHashing();
 		LockFreeChainHashing lockFreeChainTable = new LockFreeChainHashing();
+		CoarseGrainedRobinHoodHashing coarseRobin = new CoarseGrainedRobinHoodHashing();
+		FineGrainedRobinHoodHashing fineRobin = new FineGrainedRobinHoodHashing();
+		LockFreeRobinHoodHashing lockFreeRobin = new LockFreeRobinHoodHashing();
 		
 		long start, end;
 		// Insert 3000 elements into Hashtables
-		start = System.nanoTime();
+	    start = System.nanoTime();
 		addElements(javaHashMap);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to java ConcurrentHashMap: " + (end - start));
@@ -30,6 +33,21 @@ public class HashTableTiming {
 		addElements(lockFreeChainTable);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Lock-free Hash table with Chaining: " + (end - start));
+		
+		start = System.nanoTime();
+		addElements(coarseRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Coarse-grained Robin Hood Hashing: " + (end - start));
+		
+		start = System.nanoTime();
+		addElements(fineRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Fine-grained Robin Hood Hashing: " + (end - start));
+		
+		start = System.nanoTime();
+		addElements(lockFreeRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Lock-free Robin Hood Hashing: " + (end - start));
 		
 		// Delete 3000 elements from Hashtables (?)
 		start = System.nanoTime();
@@ -51,10 +69,26 @@ public class HashTableTiming {
 		removeElements(lockFreeChainTable);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements to Lock-free Hash table with Chaining: " + (end - start));
+		
+		start = System.nanoTime();
+		removeElements(coarseRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements to Coarse-grained Robin Hood Hashing: " + (end - start));
+		
+		start = System.nanoTime();
+		removeElements(fineRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements to Fine-grained Robin Hood Hashing: " + (end - start));
+		
+		start = System.nanoTime();
+		removeElements(lockFreeRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements to Lock-free Robin Hood Hashing: " + (end - start));
+		
 	}
 	
 	public static void addElements(TableType list) {
-		threads[0] = new Thread(new myThreadAdd(list, 0, 10));
+		threads[0] = new Thread(new myThreadAdd(list, 0, 15));
 		threads[1] = new Thread(new myThreadAdd(list, 10, 20));
 		threads[2] = new Thread(new myThreadAdd(list, 20, 30));
 		
@@ -69,9 +103,9 @@ public class HashTableTiming {
 	}
 	
 	public static void removeElements(TableType list) {
-		threads[0] = new Thread(new myThreadRm(list, 0, 1000));
-		threads[1] = new Thread(new myThreadRm(list, 1000, 2000));
-		threads[2] = new Thread(new myThreadRm(list, 2000, 3000));
+		threads[0] = new Thread(new myThreadRm(list, 0, 15));
+		threads[1] = new Thread(new myThreadRm(list, 10, 20));
+		threads[2] = new Thread(new myThreadRm(list, 20, 30));
 		
 		threads[1].start(); threads[0].start(); threads[2].start();
         for (Thread thread : threads) {

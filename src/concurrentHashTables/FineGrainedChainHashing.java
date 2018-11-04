@@ -71,7 +71,7 @@ public class FineGrainedChainHashing implements TableType {
 		for(String s: hashTable.keySet()) {
 			Node current = hashTable.get(s);
 			while(current != null) {
-				str.append("" + current.value).append(",");
+				str.append("" + current.value).append(", ");
 				current = current.next;
 			}
 		}
