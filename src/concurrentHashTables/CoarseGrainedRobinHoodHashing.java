@@ -56,7 +56,7 @@ public class CoarseGrainedRobinHoodHashing implements TableType {
 		    Integer key = new Integer(value);
 		
 		    Integer entry = hashMap.get(key);
-		    if(entry == value) {
+		    if(entry != null && entry == value) {
 			    hashMap.remove(key);
 			    return;
 		    }

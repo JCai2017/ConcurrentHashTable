@@ -11,7 +11,7 @@ public class LockFreeRobinHoodHashing implements TableType {
 
 	@Override
 	public void put(int value) {
-		Integer key = value % 2;
+		Integer key = value;
 		int valToAdd = value;
 		Node entry = new Node(value);
 		AtomicReference<Node> existingEntry = hashMap.get(key);
@@ -39,13 +39,13 @@ public class LockFreeRobinHoodHashing implements TableType {
 		}
 		
 		while(true) {
-			key = valToAdd % 2;
+			key = valToAdd;
 			existingEntry = hashMap.get(key);
 			
 			while(existingEntry != null && existingEntry.get() != null) {
 				Node current = existingEntry.get();
 				int currentVal = current.value;
-				int diff = Math.abs(currentVal % 2 - key);
+				int diff = Math.abs(currentVal - key);
 				if(diff < probeValue) {
 					if(existingEntry.compareAndSet(current, entry)) {
 						entry = new Node(currentVal);
@@ -79,7 +79,7 @@ public class LockFreeRobinHoodHashing implements TableType {
 
 	@Override
 	public void remove(int value) {
-		Integer key = value % 2;
+		Integer key = value;
 		AtomicReference<Node> existingEntry = hashMap.get(key);
 		
 		if(existingEntry == null) {
@@ -88,7 +88,7 @@ public class LockFreeRobinHoodHashing implements TableType {
 		
 		while(true) {
 			boolean found = false;
-			key = value % 2;
+			key = value;
 			existingEntry = hashMap.get(key);
 			Node entry = existingEntry.get();
 			
@@ -101,9 +101,11 @@ public class LockFreeRobinHoodHashing implements TableType {
 			
 			key = (key + 1) % maxSize.get();
 			existingEntry = hashMap.get(key);
-			entry = existingEntry.get();
+			if(existingEntry != null) {
+			    entry = existingEntry.get();
+			}
 			
-			while(key != value % 2) {
+			while(key != value) {
 				if(existingEntry != null && existingEntry.get() != null) {
 					entry = existingEntry.get();
 					if(entry.value == value) {
