@@ -59,7 +59,7 @@ public class LockFreeChainHashing implements TableType {
 		while(true) {
 			current = atomicHashMap.get(key);
 			boolean found = false;
-			while(current.next.getReference() != null && !current.next.isMarked()) {
+			while(current != null && current.next.getReference() != null && !current.next.isMarked()) {
 				if(current.next.getReference().value == value) {
 					found = true;
 					Node nextNode = current.next.getReference();

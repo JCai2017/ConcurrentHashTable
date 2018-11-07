@@ -26,7 +26,7 @@ public class LockFreeRobinHoodHashing implements TableType {
 			    }
 			}
 			
-			if(hashMap.get(key).get().value == value) {
+			if(hashMap.get(key).get() != null && hashMap.get(key).get().value == value) {
 				maxSize.getAndIncrement();
 				return;
 			}
