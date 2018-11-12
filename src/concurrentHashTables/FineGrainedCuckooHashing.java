@@ -53,35 +53,17 @@ public class FineGrainedCuckooHashing implements TableType {
   public void put(int value) {
     Integer val = new Integer(value);
 
-
-    // TODO: LOOK AT SIZE!!!! Maybe take size out and check it inside of putR?
     putR(val, 0, 0);
 
     //System.out.printf("Cuckoo state:\n%s\n", this);
   }
 
   private void putR(Integer val, int tableIdx, int cnt) {
-    //boolean cycle = false;
     int[] positions = new int[nests];
     Integer swapval;
 
-
-    //System.out.printf("Val: %d, TableIdx: %d\n", val, tableIdx);
-    // Make sure nobody else is trying to rehash
     checkRehashAndUpdateTable();
 
-    // Maybe move these into separate function
-    // Check the size of the table
-//    slock.lock();
-//    try {
-//      if (cnt > size) {
-//        cycle = true;
-//      }
-//    } finally {
-//      slock.unlock();
-//    }
-
-    //if (cycle) {
     if (cnt > getSize()) {
       //System.out.printf("%d unpositioned. Cycle present. REHASH.\n", val);
       rehash();
@@ -108,34 +90,24 @@ public class FineGrainedCuckooHashing implements TableType {
       }
     }
 
-    tables.get(tableIdx).get(positions[tableIdx]).lock.lock();
+    ReentrantLock myLock = tables.get(tableIdx).get(positions[tableIdx]).lock;
+    myLock.lock();
+
     try {
       // Put the new key in the table and move the old key if necessary
       if (tables.get(tableIdx).get(positions[tableIdx]).value != null) {
         swapval = new Integer(tables.get(tableIdx).get(positions[tableIdx]).value);
         tables.get(tableIdx).get(positions[tableIdx]).setVal(val);
         finishUpdateTable();
-//        tables.get(tableIdx).get(positions[tableIdx]).lock.unlock();
-//        putR(swapval, (tableIdx + 1) % nests, cnt + 1);
-//        return;
       } else {
         // Successfully add value without any replacements
         tables.get(tableIdx).get(positions[tableIdx]).setVal(val);
-//        slock.lock();
-//        try {
-//          size++;
-//        } finally {
-//          slock.unlock();
-//        }
         incrementSize();  // implicit return here
         finishUpdateTable();
         return;
       }
     } finally {
-//      if (tables.get(tableIdx).get(positions[tableIdx]).lock.isHeldByCurrentThread()) {
-//        tables.get(tableIdx).get(positions[tableIdx]).lock.unlock();
-//      }
-      tables.get(tableIdx).get(positions[tableIdx]).lock.unlock();
+      myLock.unlock();
     }
 
     // Place the swapped value back into the table
@@ -144,14 +116,12 @@ public class FineGrainedCuckooHashing implements TableType {
 
   @Override
   public void remove(int value) {
-    //lock.lock();
     checkRehashAndUpdateTable();
     int idx;
 
     Integer val = new Integer(value);
     // Fill positions
     for (int i = 0; i < nests; i++) {
-      //positions[i] = hash(i, val);
       idx = hash(i, val);
 
       // Acquire lock to check this entry
@@ -159,12 +129,7 @@ public class FineGrainedCuckooHashing implements TableType {
       try {
         if (tables.get(i).get(idx).value != null && tables.get(i).get(idx).value.equals(val)) {
           tables.get(i).get(idx).setVal(null);
-          //          slock.lock();
-          //          try {
-          //            size--;
-          //          } finally {
-          //            slock.unlock();
-          //          }
+
           decrementSize();
           finishUpdateTable();
           return;
@@ -208,7 +173,7 @@ public class FineGrainedCuckooHashing implements TableType {
     try {
       numAltering--;
       // TODO: see if you can replace this with .signal() instead of .signalAll()
-      doneAltering.signalAll();
+      doneAltering.signal();
     } finally {
       rlock.unlock();
     }
@@ -233,18 +198,9 @@ public class FineGrainedCuckooHashing implements TableType {
         doneAltering.await();
       }
 
-      // want to actually get all vals from the oldtable
       List<Integer> oldVals = getValues();
-      //int oldMax = maxSize;
-      //boolean allMoved = true;
 
       maxSize = (maxSize * 2) + 1;
-//      slock.lock();
-//      try {
-//        size = 0; // re-initialize size for all of the values you add
-//      } finally {
-//        slock.unlock();
-//      }
       resetSize();
 
       // Initialize new, empty table

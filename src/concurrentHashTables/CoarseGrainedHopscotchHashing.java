@@ -1,27 +1,19 @@
 package concurrentHashTables;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.Arrays.fill;
 
 public class CoarseGrainedHopscotchHashing implements TableType {
-  //HashMap<Integer, Integer> hashMap = new HashMap<Integer, Integer>();
-  //private ArrayList<Integer> hashMap;
-  //private List<List<Integer>> tables;
   private List<Node> table;
   private int size = 0;
   private int maxSize = 5000;
   private int H = getLog2(maxSize);
   private int buckets = (int)Math.ceil((double)maxSize / (double)H);
-  private Random randy = new Random();
-  private int a;
-  private int b;
 
-  private static final ReentrantLock lock = new ReentrantLock();
+  private final ReentrantLock lock = new ReentrantLock();
 
   // Initialize the hash table
   public CoarseGrainedHopscotchHashing() {
@@ -92,7 +84,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
     }
 
     // Set the neighborhood info
-    // flag1 means setting up a bitmap for a value in a different bucket
     if (flag1) {
       table.get(current).setVal(new Integer(table.get(start).value));
       table.get(current).resetBits();
@@ -100,7 +91,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
       neighborArr = new char[table.get(current).origH];
       table.get(current).setBitArr(neighborArr);
 
-      // start by copying original neighbor array
       // Start with the bitmap corresponding to this bucket
       System.arraycopy(table.get(hash(table.get(start).value)).bits, 0, neighborArr, 0, neighborArr.length);
 
@@ -126,7 +116,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
 
       Integer newVal = new Integer(val);
       table.get(start).setVal(newVal);
-      //table.get(start).setBit(0, '1');
 
       table.get(start).setBitArr(table.get(hash(newVal)).bits);
 
@@ -173,7 +162,7 @@ public class CoarseGrainedHopscotchHashing implements TableType {
         return null;
       }
 
-      c = checkBits(++pos);
+      c = checkBits(pos++);
     }
 
     return c;
@@ -189,8 +178,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
     }
     return null;
   }
-
-
 
 
   @Override
@@ -233,7 +220,7 @@ public class CoarseGrainedHopscotchHashing implements TableType {
   private int getLog2(int x) {
     double temp = Math.log((double)x) / Math.log((2.0));
     temp = Math.ceil(temp);
-    //System.out.printf("Log is %d\n", (int)temp);
+    System.out.printf("Log is %d\n", (int)temp);
     return (int)temp;
   }
 
@@ -264,7 +251,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
     char bits[] = new char[H + 2];
 
     public Node(Integer val) {
-      //bits = Collections.nCopies(origH, '0');
       value = val;
       fill(bits, '0');
     }
@@ -282,8 +268,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
 
     public void setBitArr(char[] newBits) {
       System.arraycopy(newBits, 0, bits, 0, bits.length);
-      //bits = newBits;
-
     }
 
 
@@ -305,13 +289,11 @@ public class CoarseGrainedHopscotchHashing implements TableType {
       }
 
       return bits[actualLoc];
-      //bits[actualLoc] = val;
     }
 
     public void setVal(Integer newVal) {
       value = newVal;
     }
-
 
   }
 }

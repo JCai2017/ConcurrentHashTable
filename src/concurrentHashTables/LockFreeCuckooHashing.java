@@ -21,12 +21,12 @@ public class LockFreeCuckooHashing implements TableType {
 
   // Global lock for resizing table
   private final ReentrantLock rlock = new ReentrantLock();
-  private final Condition resized = rlock.newCondition();
-  private final Condition doneAltering = rlock.newCondition();
-  private boolean resizing = false;
-  private int rehashDepth = 0;
-  private Thread resizingThread = null;
-  private int numAltering = 0;
+  //private final Condition resized = rlock.newCondition();
+  //private final Condition doneAltering = rlock.newCondition();
+  //private boolean resizing = false;
+  //private int rehashDepth = 0;
+  //private Thread resizingThread = null;
+  //private int numAltering = 0;
 
   private int maxSize = 2000;
   private Random randy = new Random();
@@ -151,146 +151,7 @@ public class LockFreeCuckooHashing implements TableType {
     }
   }
 
-//  // Called by threads that are not rehashing to wait while another rehashes
-//  private void checkRehashAndUpdateTable() {
-//    // If current thread is the one rehashing, return immediately
-//    if (rlock.isHeldByCurrentThread()) {
-//      return;
-//    }
-//
-//    rlock.lock();
-//    try {
-//      while (resizing) {
-//        resized.await();
-//      }
-//      numAltering++;
-//    } catch (InterruptedException e) {
-//      System.err.printf("Thread checking rehash got interrupted!\n");
-//      e.printStackTrace();
-//    } finally {
-//      rlock.unlock();
-//    }
-//  }
-//
-//  private void finishUpdateTable() {
-//    // If current thread is the one rehashing, return immediately
-//    if (rlock.isHeldByCurrentThread()) {
-//      return;
-//    }
-//    rlock.lock();
-//    try {
-//      numAltering--;
-//      // TODO: see if you can replace this with .signal() instead of .signalAll()
-//      doneAltering.signalAll();
-//    } finally {
-//      rlock.unlock();
-//    }
-//  }
-//
-//  // Regrow hash table to capacity 2 * old capacity + 1 and re-insert all key, value pairs
-//  private void rehash() {
-//    // Does it matter that thread might already hold rlock?
-//    rlock.lock();
-//
-//    try {
-//      if (resizing != false && !resizingThread.equals(Thread.currentThread())) {
-//        //System.out.printf("Inside rehash but other thread set resize to true...\n");
-//      }
-//      resizing = true;
-//      rehashDepth++;
-//      //System.out.printf("RehashDepth: %d\n", rehashDepth);
-//      resizingThread = Thread.currentThread();
-//      // Sleep while I'm not the only one trying to alter the table
-//      while (numAltering > 1) {
-//        //System.out.printf("numAltering: %d\n", numAltering);
-//        doneAltering.await();
-//      }
-//
-//      // want to actually get all vals from the oldtable
-//      List<Integer> oldVals = getValues();
-//      //int oldMax = maxSize;
-//      //boolean allMoved = true;
-//
-//      maxSize = (maxSize * 2) + 1;
-////      slock.lock();
-////      try {
-////        size = 0; // re-initialize size for all of the values you add
-////      } finally {
-////        slock.unlock();
-////      }
-//      resetSize();
-//
-//      // Initialize new, empty table
-//      tables = new ArrayList<>();
-//
-//      for (int i = 0; i < nests; i++) {
-//        List<Node> table = new ArrayList<Node>();
-//
-//        for (int j = 0; j < maxSize; j++) {
-//          table.add(new Node(null));
-//        }
-//
-//        tables.add(table);
-//      }
-//
-//      a = randy.nextInt();
-//      a = (a % 2 == 0) ? a + 1 : a;  // Make sure a is odd
-//      b = randy.nextInt();
-//
-//      for (int i = 0; i < oldVals.size(); i++) {
-//        putR(oldVals.get(i), 0, 0);  // This will automatically increment size
-//      }
-//
-//      // Only want to do this when done resizing...
-//      rehashDepth--;
-//      if (rehashDepth <= 0) {
-//        numAltering--;  // should have only been incremented the first time (when trying to add the value that triggered initial rehash)
-//        resizing = false;
-//        resized.signalAll();
-//      }
-//    } catch (InterruptedException e) {
-//      System.err.printf("Thread trying to rehash got interrupted!\n");
-//      e.printStackTrace();
-//    } finally {
-//      rlock.unlock();
-//    }
-//  }
 
-//  private int getSize() {
-//    slock.lock();
-//    try {
-//      return size;
-//    } finally {
-//      slock.unlock();
-//    }
-//  }
-//
-//  private void incrementSize() {
-//    slock.lock();
-//    try {
-//      size++;
-//    } finally {
-//      slock.unlock();
-//    }
-//  }
-//
-//  private void decrementSize() {
-//    slock.lock();
-//    try {
-//      size--;
-//    } finally {
-//      slock.unlock();
-//    }
-//  }
-//
-//  private void resetSize() {
-//    slock.lock();
-//    try {
-//      size = 0;
-//    } finally {
-//      slock.unlock();
-//    }
-//  }
 
   private void rehash() {
     // TODO
@@ -309,24 +170,6 @@ public class LockFreeCuckooHashing implements TableType {
     }
   }
 
-//  // when getValues called during rehash, current thread already owns lock
-//  private List<Integer> getValues() {
-//    rlock.lock();
-//    try {
-//      List<Integer> vals = new ArrayList<Integer>();
-//      // Be careful with maxSize (make sure not to check it after it's been increased)
-//      for (int i = 0; i < nests; i++) {
-//        for (int j = 0; j < maxSize; j++) {
-//          if (tables.get(i).get(j).value != null) {
-//            vals.add(tables.get(i).get(j).value);
-//          }
-//        }
-//      }
-//      return vals;
-//    } finally {
-//      rlock.unlock();
-//    }
-//  }
 
   // Find all entries for put or remove
   public Integer find(Integer val, AtomicStampedReference<Node> t0ref, AtomicStampedReference<Node> t1ref) {
@@ -364,7 +207,7 @@ public class LockFreeCuckooHashing implements TableType {
           continue;
         }
         if (n1a.value != null && n1a.value.equals(val)) {
-          if (foundTable.equals(0)) {
+          if (foundTable != null && foundTable.equals(0)) {
             delDupe(idx0, t0ref, idx1, t1ref);
           } else {
             foundTable = new Integer(1);
@@ -515,11 +358,18 @@ public class LockFreeCuckooHashing implements TableType {
   }
 
   private void delDupe(int idx0, AtomicStampedReference<Node> t0ref, int idx1, AtomicStampedReference<Node> t1ref) {
+    // Delete duplicate entries
+    if (tables.get(0).get(idx0).getReference() == null || tables.get(1).get(idx1).getReference() == null) {
+      return;
+    }
+
+    // If the entries in the tables are not the same as the passed in references, continue
     if (!(tables.get(0).get(idx0).getReference().equals(t0ref.getReference()) && tables.get(0).get(idx0).getStamp() != t0ref.getStamp()) &&
     !(tables.get(1).get(idx1).getReference().equals(t1ref.getReference()) && tables.get(1).get(idx1).getStamp() != t1ref.getStamp())) {
       return;
     }
 
+    // If the two values are different, return
     if (t0ref.getReference() != null && t0ref.getReference() != null && !(t0ref.getReference().value.equals(t1ref.getReference().value))) {
       return;
     }
@@ -589,7 +439,7 @@ public class LockFreeCuckooHashing implements TableType {
           // reached the end of the path
           found = true;
         }
-
+      //System.out.printf("Depth: %d", depth);
       } while (!found && ++depth < threshold);
 
       if (found) {
@@ -648,7 +498,6 @@ public class LockFreeCuckooHashing implements TableType {
     int relocations = 0;
     boolean relocating = false;
     boolean newTable = false;
-    //ReentrantLock lock = new ReentrantLock();
 
     public Node(Integer value) {
       this.value = value;
