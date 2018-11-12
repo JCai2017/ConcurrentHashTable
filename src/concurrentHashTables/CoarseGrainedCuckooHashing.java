@@ -88,6 +88,7 @@ public class CoarseGrainedCuckooHashing implements TableType {
 //          position = key2;
 //        }
 //      }
+      System.out.printf("Cuckoo state:\n%s\n", this);
     } finally {
       lock.unlock();
     }
@@ -130,8 +131,10 @@ public class CoarseGrainedCuckooHashing implements TableType {
     int[] positions = new int[nests];
     Integer swapval;
 
+    System.out.printf("Val: %d, TableIdx: %d\n", val, tableIdx);
+
     if (cnt > max) {
-      //System.out.printf("%d unpositioned. Cycle present. REHASH.\n", val);
+      System.out.printf("%d unpositioned. Cycle present. REHASH.\n", val);
       // rehash here instead??
       rehash();
 
@@ -145,7 +148,7 @@ public class CoarseGrainedCuckooHashing implements TableType {
     for (int i = 0; i < nests; i++) {
       positions[i] = hash(i, val);
       if (tables.get(i).get(positions[i]) != null && tables.get(i).get(positions[i]).equals(val)) {
-        //System.out.printf("%d already in the table!\n", val);
+        System.out.printf("%d already in the table!\n", val);
         return;
       }
     }
@@ -156,6 +159,7 @@ public class CoarseGrainedCuckooHashing implements TableType {
       swapval = tables.get(tableIdx).get(positions[tableIdx]);
       tables.get(tableIdx).set(positions[tableIdx], val);
       putR(swapval, (tableIdx + 1) % nests, cnt + 1, max);
+      return;
     } else {
       // Successfully add value without any replacements
       tables.get(tableIdx).set(positions[tableIdx], val);
@@ -181,10 +185,9 @@ public class CoarseGrainedCuckooHashing implements TableType {
           return;
         }
 
-        //System.out.printf("Value %d not found. No value removed.\n", value);
-        return;
       }
-
+      //System.out.printf("Value %d not found. No value removed.\n", value);
+      return;
     } finally {
       lock.unlock();
     }
@@ -239,7 +242,16 @@ public class CoarseGrainedCuckooHashing implements TableType {
       return key % maxSize;
     } else {
       //System.out.printf("a: %d, b: %d\n", a, b);
-      return ((a * key + b) & ((1 << 32) - 1)) % maxSize;
+      int x1 = a * key + b;
+      //int x2 = (1 << 32) - 1;
+      int x2 = (1 << 31 << 1) - 1;
+      int x3 = x1 & x2;
+      int x4 = x3 % maxSize;
+
+      int hashval = ((a * key + b) & ((1 << 31 << 1) - 1));
+      if (hashval < 0) hashval = hashval * -1;
+
+      return hashval % maxSize;
     }
   }
 
@@ -262,6 +274,7 @@ public class CoarseGrainedCuckooHashing implements TableType {
   public String toString() {
     lock.lock();
     try {
+      //System.out.printf("Inside toString\n");
       StringBuilder str = new StringBuilder();
       for (int i = 0; i < nests; i++) {
         // print both columns of values
@@ -272,6 +285,7 @@ public class CoarseGrainedCuckooHashing implements TableType {
             str.append("\t");
           }
         }
+        str.append("\n");  // indicate break between 2 tables
       }
       return str.toString();
     } finally {
