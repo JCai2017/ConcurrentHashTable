@@ -88,7 +88,7 @@ public class CoarseGrainedCuckooHashing implements TableType {
 //          position = key2;
 //        }
 //      }
-      System.out.printf("Cuckoo state:\n%s\n", this);
+      //System.out.printf("Cuckoo state:\n%s\n", this);
     } finally {
       lock.unlock();
     }
@@ -131,10 +131,10 @@ public class CoarseGrainedCuckooHashing implements TableType {
     int[] positions = new int[nests];
     Integer swapval;
 
-    System.out.printf("Val: %d, TableIdx: %d\n", val, tableIdx);
+    //System.out.printf("Val: %d, TableIdx: %d\n", val, tableIdx);
 
     if (cnt > max) {
-      System.out.printf("%d unpositioned. Cycle present. REHASH.\n", val);
+      //System.out.printf("%d unpositioned. Cycle present. REHASH.\n", val);
       // rehash here instead??
       rehash();
 
@@ -148,7 +148,7 @@ public class CoarseGrainedCuckooHashing implements TableType {
     for (int i = 0; i < nests; i++) {
       positions[i] = hash(i, val);
       if (tables.get(i).get(positions[i]) != null && tables.get(i).get(positions[i]).equals(val)) {
-        System.out.printf("%d already in the table!\n", val);
+        //System.out.printf("%d already in the table!\n", val);
         return;
       }
     }
