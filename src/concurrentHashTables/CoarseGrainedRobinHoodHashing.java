@@ -13,7 +13,7 @@ public class CoarseGrainedRobinHoodHashing implements TableType {
 	public void put(int value) {
 		lock.lock();
 		try {
-		    Integer key = new Integer(value);
+		    Integer key = new Integer(value % 1500);
 		
 		    Integer entry = new Integer(value);
 		    Integer existingEntry = hashMap.get(key);
@@ -30,7 +30,7 @@ public class CoarseGrainedRobinHoodHashing implements TableType {
 		    		return;
 		    	}
 		    	
-			    int diff = Math.abs(key - existingEntry);
+			    int diff = Math.abs(key - existingEntry % 1500);
 			    if(diff < probeValue) {
 				    hashMap.put(key, entry);
 				    entry = existingEntry;
@@ -53,7 +53,7 @@ public class CoarseGrainedRobinHoodHashing implements TableType {
 	public void remove(int value) {
 		lock.lock();
 		try {
-		    Integer key = new Integer(value);
+		    Integer key = new Integer(value % 1500);
 		
 		    Integer entry = hashMap.get(key);
 		    if(entry != null && entry == value) {
@@ -63,7 +63,7 @@ public class CoarseGrainedRobinHoodHashing implements TableType {
 		
 		    while(entry == null || entry != value) {
 			    key = (key + 1) % maxSize;
-			    if(key == value) {
+			    if(key == value % 1500) {
 			    	return;
 			    }
 			    entry = hashMap.get(key);

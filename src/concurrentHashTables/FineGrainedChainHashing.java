@@ -5,19 +5,26 @@ import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class FineGrainedChainHashing implements TableType {
-	public HashMap<String, Node> hashTable = new HashMap<>();
+	public HashMap<Integer, Node> hashTable = new HashMap<>();
+	
+	public FineGrainedChainHashing() {
+		for(int i = 0; i < 1500; i++) {
+			hashTable.put(i, new Node());
+		}
+	}
 
 	@Override
 	public void put(int value) {	
-		String key = "" + value;
+		Integer key = value % 1500;
 		Node n = new Node(value);
 		Node current = hashTable.get(key);
-		if(current == null) {
-			hashTable.put(key, n);
+		current.lock.lock();
+		if(current.value == -1) {
+			current.value = value;
+			current.lock.unlock();
 			return;
 		}
 		
-		current.lock.lock();
 		Node prev;
 		while(current.next != null) {
 			prev = current;
@@ -33,13 +40,16 @@ public class FineGrainedChainHashing implements TableType {
 
 	@Override
 	public void remove(int value) {
-		String key = "" + value;
+		Integer key = value % 1500;
 		Node current = hashTable.get(key);
 		if(current != null) {
-			if(current.next == null && current.value == value) {
-				hashTable.put(key, null);
+			current.lock.lock();
+			if(current.value == value) {
+				hashTable.put(key, current.next);
+				current.lock.unlock();
 				return;
 			} else if(current.next == null) {
+				current.lock.unlock();
 				return;
 			}
 			
@@ -61,15 +71,18 @@ public class FineGrainedChainHashing implements TableType {
 			
 			if(current.value == value) {
 				prev.next = current.next;
+				prev.lock.unlock();
 			}
+			
+			current.lock.unlock();
 		}
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder();
-		for(String s: hashTable.keySet()) {
-			Node current = hashTable.get(s);
+		for(Integer i: hashTable.keySet()) {
+			Node current = hashTable.get(i);
 			while(current != null) {
 				str.append("" + current.value).append(", ");
 				current = current.next;
@@ -82,6 +95,10 @@ public class FineGrainedChainHashing implements TableType {
 		Node next = null;
 		int value;
 		ReentrantLock lock = new ReentrantLock();
+		
+		public Node() {
+			this.value = -1;
+		}
 		
 		public Node(int value) {
 			this.value = value;

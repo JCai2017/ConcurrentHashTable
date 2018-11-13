@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class CoarseGrainedChainHashing implements TableType {
-	public HashMap<String, LinkedList<Integer>> hashTable = new HashMap<>();
+	public HashMap<Integer, LinkedList<Integer>> hashTable = new HashMap<>();
 	private final ReentrantLock lock = new ReentrantLock();
 
 	@Override
@@ -13,7 +13,7 @@ public class CoarseGrainedChainHashing implements TableType {
 		lock.lock();
 		
 		try {
-			String key = "" + value;
+			Integer key = value % 1500;
 			LinkedList<Integer> list = hashTable.get(key);
 			if(list == null) {
 				list = new LinkedList<Integer>();
@@ -31,7 +31,7 @@ public class CoarseGrainedChainHashing implements TableType {
 		lock.lock();
 		
 		try {
-			String key = "" + value;
+			Integer key = value % 1500;
 			LinkedList<Integer> list = hashTable.get(key);
 			if(list != null) {
 				list.remove(list.indexOf(new Integer(value)));
@@ -46,8 +46,8 @@ public class CoarseGrainedChainHashing implements TableType {
 	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder();
-		for(String s: hashTable.keySet()) {
-			for(Integer i: hashTable.get(s)) {
+		for(Integer key: hashTable.keySet()) {
+			for(Integer i: hashTable.get(key)) {
 				str.append("" + i).append(",");
 			}
 		}

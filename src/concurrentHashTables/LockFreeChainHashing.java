@@ -4,31 +4,21 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicMarkableReference;
 
 public class LockFreeChainHashing implements TableType {
-	private HashMap<String, Node> atomicHashMap = new HashMap<>();
+	private HashMap<Integer, Node> atomicHashMap = new HashMap<>();
+	
+	public LockFreeChainHashing() {
+		for(int i = 0; i < 1500; i++) {
+			atomicHashMap.put(i, new Node(null));
+		}
+	}
 
 	@Override
 	public void put(int value) {
-		String key = "" + value;
+		Integer key = value % 1500;
 		Node n = new Node(value);
 		Node head = atomicHashMap.get(key);
 
-		if(head == null) {
-			Node newHead = new Node(null);
-			while(!newHead.next.compareAndSet(null, n, false, false)) {}
-			
-			while(atomicHashMap.get(key) == null) {
-			    atomicHashMap.put(key, newHead);
-			    try {
-				    Thread.sleep(0, 1000);
-			    } catch (InterruptedException e) {
-				    e.printStackTrace();
-			    }
-			}
-			
-			if(atomicHashMap.get(key).next.getReference().value == value) {
-			    return;
-			}
-		} else if(head.next.getReference() == null) {
+		if(head.next.getReference() == null) {
 			if(head.next.compareAndSet(null, n, false, false))
 				return;
 		}
@@ -50,7 +40,7 @@ public class LockFreeChainHashing implements TableType {
 
 	@Override
 	public void remove(int value) {
-		String key = "" + value;
+		Integer key = value % 1500;
 		Node current = atomicHashMap.get(key);
 		if(current == null || current.next.getReference() == null) {
 			return;
@@ -88,8 +78,8 @@ public class LockFreeChainHashing implements TableType {
 	public String toString() {
 		StringBuilder str = new StringBuilder();
 		int numElem = 0;
-		for(String s: atomicHashMap.keySet()) {
-			Node current = atomicHashMap.get(s).next.getReference();
+		for(Integer i: atomicHashMap.keySet()) {
+			Node current = atomicHashMap.get(i).next.getReference();
 			while(current != null) {
 				str.append("" + current.value).append(",");
 				numElem ++;

@@ -12,16 +12,16 @@ public class FineGrainedRobinHoodHashing implements TableType {
 
 	@Override
 	public void put(int value) {
-		Integer key = value;
+		Integer key = value % 1500;
 		Integer entry = value;
 		
 		Integer existingEntry = hashMap.computeIfAbsent(key, tempKey -> update(value));
-		if(existingEntry == entry || existingEntry == null) {
+		if(existingEntry == value || existingEntry == null) {
 			return;
 		}
 		
-		while(existingEntry != entry && existingEntry != null) {
-			int diff = Math.abs(existingEntry - key);
+		while(existingEntry.intValue() != entry.intValue() && existingEntry != null) {
+			int diff = Math.abs((existingEntry % 1500) - key);
 			if(diff < probe) {
 				int valToReplace = entry;
 				hashMap.computeIfPresent(key, (tempKey, tempEntry) -> valToReplace);
@@ -41,9 +41,9 @@ public class FineGrainedRobinHoodHashing implements TableType {
 
 	@Override
 	public void remove(int value) {
-		Integer key = value;
+		Integer key = value % 1500;
 		BiFunction<Integer, Integer, Integer> function = (tempKey, tempEntry) -> {
-			if(tempEntry == value) {
+			if(tempEntry.intValue() == value) {
 				tempEntry = null;
 			}
 			
@@ -59,9 +59,13 @@ public class FineGrainedRobinHoodHashing implements TableType {
 		    }
 		}
 		
+		if(maxSize <= 0) {
+			return;
+		}
+		
 		while(existingEntry != null) {
 			key = (key + 1) % maxSize;
-			if(key == value) {
+			if(key == value % 1500) {
 				return;
 			}
 			
