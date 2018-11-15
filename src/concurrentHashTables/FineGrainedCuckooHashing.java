@@ -23,10 +23,9 @@ public class FineGrainedCuckooHashing implements TableType {
   private int rehashDepth = 0;
   private Thread resizingThread = null;
   private int numAltering = 0;
-  private int numRehashing = 0;
 
   private int maxSize = 13;
-  private final int cycleSize = 200;
+  private final int maxCycle = 200;
   private Random randy = new Random();
   private int a;
   private int b;
@@ -65,6 +64,9 @@ public class FineGrainedCuckooHashing implements TableType {
     Integer swapval;
 
     checkRehashAndUpdateTable();
+
+    int size = getSize();
+    int cycleSize = (size > maxCycle) ? maxCycle : size;
 
     if (cnt > cycleSize) {
       //System.out.printf("%d unpositioned. Cycle present. REHASH.\n", val);

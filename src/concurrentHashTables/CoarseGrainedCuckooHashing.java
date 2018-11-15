@@ -11,6 +11,7 @@ public class CoarseGrainedCuckooHashing implements TableType {
   private List<List<Integer>> tables;
   private int size = 0;
   private int maxSize = 13;
+  private int maxCycle = 200;
   private Random randy = new Random();
   private int a;
   private int b;
@@ -37,7 +38,9 @@ public class CoarseGrainedCuckooHashing implements TableType {
     try {
         Integer val = new Integer(value);
 
-        putR(val, 0, 0, size);
+        int cycleSize = (size > maxCycle) ? maxCycle : size;
+
+        putR(val, 0, 0, cycleSize);
 
     } finally {
       lock.unlock();
@@ -123,7 +126,8 @@ public class CoarseGrainedCuckooHashing implements TableType {
     b = randy.nextInt();
 
     for (int i = 0; i < oldVals.size(); i++) {
-      putR(oldVals.get(i), 0, 0, i);
+      int cycleSize = (i > maxCycle) ? maxCycle : i;
+      putR(oldVals.get(i), 0, 0, cycleSize);
     }
 
   }
@@ -134,7 +138,7 @@ public class CoarseGrainedCuckooHashing implements TableType {
 
   int hash(int fn, int key) {
     if (fn == 0) {
-      return key % maxSize;
+      return key % 1500 % maxSize;
     } else {
       //System.out.printf("a: %d, b: %d\n", a, b);
 
