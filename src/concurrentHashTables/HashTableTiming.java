@@ -12,6 +12,11 @@ public class HashTableTiming {
 		CoarseGrainedRobinHoodHashing coarseRobin = new CoarseGrainedRobinHoodHashing();
 		FineGrainedRobinHoodHashing fineRobin = new FineGrainedRobinHoodHashing();
 		LockFreeRobinHoodHashing lockFreeRobin = new LockFreeRobinHoodHashing();
+		CoarseGrainedCuckooHashing coarseCuckoo = new CoarseGrainedCuckooHashing();
+		FineGrainedCuckooHashing fineCuckoo = new FineGrainedCuckooHashing();
+		LockFreeCuckooHashing lockFreeCuckoo = new LockFreeCuckooHashing();
+		CoarseGrainedHopscotchHashing coarseHopscotch = new CoarseGrainedHopscotchHashing();
+		FineGrainedHopscotchHashing fineHopscotch = new FineGrainedHopscotchHashing();
 		
 		long start, end;
 		// Insert 3000 elements into Hashtables
@@ -54,6 +59,31 @@ public class HashTableTiming {
 		addElements(lockFreeRobin);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Lock-free Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElements(coarseCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements from Coarse-grained Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElements(fineCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements from Fine-Grained Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElements(lockFreeCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements from Lock-Free Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElements(coarseHopscotch);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Coarse-grained Hopscotch Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElements(fineHopscotch);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Fine-Grained Hopscotch Hashing: " + (end - start));
 		
 		// Delete 3000 elements from Hashtables (?)
 		start = System.nanoTime();
@@ -95,6 +125,31 @@ public class HashTableTiming {
 		removeElements(lockFreeRobin);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Lock-free Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElements(coarseCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Coarse-grained Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElements(fineCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Fine-Grained Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElements(lockFreeCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Lock-Free Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElements(coarseHopscotch);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Coarse-grained Hopscotch Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElements(fineHopscotch);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Fine-Grained Hopscotch Hashing: " + (end - start));
 		
 	}
 	
