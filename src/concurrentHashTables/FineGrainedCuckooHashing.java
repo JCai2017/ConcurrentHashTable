@@ -23,8 +23,10 @@ public class FineGrainedCuckooHashing implements TableType {
   private int rehashDepth = 0;
   private Thread resizingThread = null;
   private int numAltering = 0;
+  private int numRehashing = 0;
 
   private int maxSize = 13;
+  private final int cycleSize = 200;
   private Random randy = new Random();
   private int a;
   private int b;
@@ -64,7 +66,7 @@ public class FineGrainedCuckooHashing implements TableType {
 
     checkRehashAndUpdateTable();
 
-    if (cnt > getSize()) {
+    if (cnt > cycleSize) {
       //System.out.printf("%d unpositioned. Cycle present. REHASH.\n", val);
       rehash();
 
@@ -110,8 +112,8 @@ public class FineGrainedCuckooHashing implements TableType {
       myLock.unlock();
     }
 
-    // Place the swapped value back into the table
     putR(swapval, (tableIdx + 1) % nests, cnt + 1);
+
   }
 
   @Override
@@ -156,6 +158,7 @@ public class FineGrainedCuckooHashing implements TableType {
         resized.await();
       }
       numAltering++;
+      // must have made it through to here by this point
     } catch (InterruptedException e) {
       System.err.printf("Thread checking rehash got interrupted!\n");
       e.printStackTrace();
@@ -172,7 +175,6 @@ public class FineGrainedCuckooHashing implements TableType {
     rlock.lock();
     try {
       numAltering--;
-      // TODO: see if you can replace this with .signal() instead of .signalAll()
       doneAltering.signal();
     } finally {
       rlock.unlock();
@@ -181,13 +183,20 @@ public class FineGrainedCuckooHashing implements TableType {
 
   // Regrow hash table to capacity 2 * old capacity + 1 and re-insert all key, value pairs
   private void rehash() {
-    // Does it matter that thread might already hold rlock?
     rlock.lock();
 
     try {
       if (resizing != false && !resizingThread.equals(Thread.currentThread())) {
+        // Wait for other thread to finish resizing
         //System.out.printf("Inside rehash but other thread set resize to true...\n");
+        numAltering--;
+        doneAltering.signal();
+        while (resizing) {
+          resized.await();
+        }
+        return;
       }
+      // Getting deadlock because 2 threads are in resizing at once...
       resizing = true;
       rehashDepth++;
       //System.out.printf("RehashDepth: %d\n", rehashDepth);
@@ -229,6 +238,7 @@ public class FineGrainedCuckooHashing implements TableType {
       if (rehashDepth <= 0) {
         numAltering--;  // should have only been incremented the first time (when trying to add the value that triggered initial rehash)
         resizing = false;
+        resizingThread = null;
         resized.signalAll();
       }
     } catch (InterruptedException e) {
@@ -277,9 +287,8 @@ public class FineGrainedCuckooHashing implements TableType {
 
   int hash(int fn, int key) {
     if (fn == 0) {
-      return key % maxSize;
+      return key % 1500 % maxSize;
     } else {
-      //System.out.printf("a: %d, b: %d\n", a, b);
 
       int hashval = ((a * key + b) & ((1 << 31 << 1) - 1));
       if (hashval < 0) hashval = hashval * -1;
