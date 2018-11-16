@@ -46,15 +46,24 @@ public class CoarseGrainedHopscotchHashing implements TableType {
 
       val = new Integer(value);
 
-      newPos = getEmptyBucket(val);
-      bucket = hash(val);
-
-
-      while (newPos == null) {
-        System.err.printf("Coarse hopscotch -- put: Wasn't able to place %d\n", value);
-        resize();
+      do {
         newPos = getEmptyBucket(val);
-      }
+        bucket = hash(val);
+
+        if (newPos == null) {
+          System.err.printf("Coarse hopscotch -- put: Wasn't able to place %d\n", value);
+          resize();
+        }
+      } while (newPos == null);
+
+
+
+//      while (newPos == null) {
+//        System.err.printf("Coarse hopscotch -- put: Wasn't able to place %d\n", value);
+//        resize();
+//        newPos = getEmptyBucket(val);
+//        bucket = hash(val);
+//      }
 
       distanceToNeighborhood = getDist(bucket, newPos);
 
@@ -354,14 +363,15 @@ public class CoarseGrainedHopscotchHashing implements TableType {
       neighborhoodBucket = table.get(bucket);
       // Check each bit in the neighborhood
       for (int i = 0; i < H; ++i) {
+        occupiedBucket = table.get(idx);
         if (neighborhoodBucket.getNeighborBit(i) == '1') {
-          if (table.get(idx).value == null) {
+          if (occupiedBucket.value == null) {
             System.err.printf("Coarse grained: unexpected null value in getIdx\n");
             idx = nextBucket(idx);
             continue;
           }
 
-          occupiedBucket = table.get(idx);
+          //occupiedBucket = table.get(idx);
           if (occupiedBucket.value.equals(value)) {
             return idx;
           }
