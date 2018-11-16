@@ -25,6 +25,12 @@ public class FineGrainedChainHashing implements TableType {
 		Integer key = hash(value);
 		Node n = new Node(value);
 		Node current = hashTable.get(key);
+		
+		if(current == null) {
+			hashTable.put(key, n);
+			return;
+		}
+		
 		current.lock.lock();
 		if(current.value == -1) {
 			current.value = value;
@@ -97,7 +103,7 @@ public class FineGrainedChainHashing implements TableType {
 			}
 		}
 		
-		if(current.value == value) 
+		if(current != null && current.value == value) 
 			return true;
 		
 		return false;
