@@ -20,6 +20,11 @@ public class JavaSynchronizedMap implements TableType {
 		m.remove(key, value);
 		
 	}
+	
+	public boolean get(int value) {
+		int key = value % 1500;
+		return (m.get(key) == value);
+	}
 
 	
 }

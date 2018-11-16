@@ -43,6 +43,19 @@ public class CoarseGrainedChainHashing implements TableType {
 		}
 	}
 	
+	public boolean get(int value) {
+		int key = value % 1500;
+		LinkedList<Integer> list = hashTable.get(key);
+		if(list != null) {
+			for(int i = 0; i < list.size(); i++) {
+				if(list.get(i) == value)
+					return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder();

@@ -76,6 +76,24 @@ public class FineGrainedRobinHoodHashing implements TableType {
 		}
 	}
 	
+	public boolean get(int value) {
+		int key = value % 1500;
+		Integer current = hashMap.get(key);
+		int keyToSearch = (key + 1) % maxSize;
+		while(keyToSearch != key) {
+			if(current != null && current == value)
+				return true;
+			
+			current = hashMap.get(key);
+			keyToSearch = (keyToSearch + 1) % maxSize;
+		}
+		
+		if(current != null && current == value)
+			return true;
+		
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder();

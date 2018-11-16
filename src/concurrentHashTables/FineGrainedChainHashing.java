@@ -78,6 +78,23 @@ public class FineGrainedChainHashing implements TableType {
 		}
 	}
 	
+	// Returns specified value
+	public boolean get(int value) {
+		int key = value % 1500;
+		Node current = hashTable.get(key);
+		if(current != null) {
+			while(current.next != null) {
+				if(current.value == value)
+					return true;
+			}
+		}
+		
+		if(current.value == value) 
+			return true;
+		
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder();
