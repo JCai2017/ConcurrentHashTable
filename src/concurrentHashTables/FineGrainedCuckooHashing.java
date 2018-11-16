@@ -313,7 +313,11 @@ public class FineGrainedCuckooHashing implements TableType {
 
   int hash(int fn, int key) {
     if (fn == 0) {
-      return key % 1500 % maxSize;
+      key = ((key >>> 16) ^ key) * 0x45d9f3b;
+      key = ((key >>> 16) ^ key) * 0x45d9f3b;
+      key = (key >>> 16) ^ key;
+      if (key < 0) key = key * -1;
+      return key % maxSize;
     } else {
 
       int hashval = ((a * key + b) & ((1 << 31 << 1) - 1));

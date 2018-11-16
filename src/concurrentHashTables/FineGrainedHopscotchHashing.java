@@ -184,7 +184,7 @@ public class FineGrainedHopscotchHashing implements TableType {
     idx = getIdx(value);
 
     if (idx == null) {
-//      System.out.printf("Fine-grained: Value %d not found in expected bucket %d. No value removed.\n", value, hash(value));
+      //System.out.printf("Fine-grained: Value %d not found in expected bucket %d. No value removed.\n", value, hash(value));
       return;
     }
 
@@ -194,18 +194,6 @@ public class FineGrainedHopscotchHashing implements TableType {
     neighborhoodBucket = table.get(neighborhoodBucketIdx);
 
     distanceToNeighborhood = getDist(neighborhoodBucketIdx, idx);
-
-//    // Check all values in the neighborhood
-//    for (int i = 0; i < H; i++) {
-//      if ((idx + i) >= maxSize) break;
-//      if (table.get(idx + i) == null || table.get(idx + i).value == null) continue;
-//      if (table.get(idx + i).equals(val)) {
-//        table.remove(idx + i);
-//        decrementSize();
-//        return;
-//      }
-//    }
-    //System.out.printf("Value %d not found. No value removed.\n", value);
 
     neighborhoodBucket.setNeighborBit(distanceToNeighborhood, '0');
     foundBucket.setVal(null);
@@ -261,7 +249,11 @@ public class FineGrainedHopscotchHashing implements TableType {
   }
 
   int hash(int key) {
-    return (key % 1500 % buckets) * H;
+    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+    key = (key >>> 16) ^ key;
+    return key % maxSize;
+    //return (key % 1500 % buckets) * H;
   }
 
   private int getLog2(int x) {

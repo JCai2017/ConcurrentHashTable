@@ -257,7 +257,7 @@ public class CoarseGrainedHopscotchHashing implements TableType {
 
       // Make sure that the character arrays are properly maintaining neighborhood info
       if (neighborhoodBucket.getBit(emptyDistanceFromMainBucket) != '0') {
-        System.err.printf("getSwapBucket: Character array not being properly maintained\n");
+        //System.err.printf("getSwapBucket: Character array not being properly maintained\n");
       }
 
       swapIdx = swapNeighborIdx;
@@ -463,8 +463,12 @@ public class CoarseGrainedHopscotchHashing implements TableType {
   }
 
   int hash(int key) {
-    return ((key % 1500 % buckets) * H % maxSize);
+    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+    key = (key >>> 16) ^ key;
+    return Math.abs(key) % maxSize;
   }
+
 
   private int getLog2(int x) {
     double temp = Math.log((double) x) / Math.log((2.0));

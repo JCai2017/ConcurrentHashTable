@@ -28,7 +28,7 @@ public class LockFreeCuckooHashing implements TableType {
   //private Thread resizingThread = null;
   //private int numAltering = 0;
 
-  private int maxSize = 5000;
+  private int maxSize = 4999;
   private final int maxCycle = 200;
   private Random randy = new Random();
   private int a;
@@ -143,9 +143,11 @@ public class LockFreeCuckooHashing implements TableType {
           return;
         }
       } else if (tab.equals(1)) {
-        if (!(tables.get(0).get(idx0).getReference().equals(n0.getReference()) && tables.get(0).get(idx0).getStamp() != n0.getStamp())) {
+        AtomicStampedReference<Node> node1 = tables.get(0).get(idx0);
+        if (!((node1.getReference() == n0.getReference()) || (node1.getReference() != null && node1.getReference().equals(n0.getReference()))) && node1.getStamp() != n0.getStamp()) {
           continue;
         }
+
         if (tables.get(1).get(idx1).compareAndSet(n1.getReference(), null, n1.getStamp(), n1.getStamp())) {
           size.getAndDecrement();
           return;
@@ -165,14 +167,16 @@ public class LockFreeCuckooHashing implements TableType {
 
   int hash(int fn, int key) {
     if (fn == 0) {
-      return key % maxSize;//key % 1499 % maxSize;
-    } else {
-      //System.out.printf("a: %d, b: %d\n", a, b);
-
       int hashval = ((a * key + b) & ((1 << 31 << 1) - 1));
       if (hashval < 0) hashval = hashval * -1;
 
       return hashval % maxSize;
+    } else {
+//      key = ((key >>> 16) ^ key) * 0x45d9f3b;
+//      key = ((key >>> 16) ^ key) * 0x45d9f3b;
+//      key = (key >>> 16) ^ key;
+//      if (key < 0) key = key * -1;
+      return key % maxSize;
     }
   }
 
