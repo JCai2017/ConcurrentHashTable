@@ -1,6 +1,8 @@
 package concurrentHashTables;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class CoarseGrainedRobinHoodHashing implements TableType {
@@ -9,11 +11,18 @@ public class CoarseGrainedRobinHoodHashing implements TableType {
 	int maxSize = 0;
 	private static final ReentrantLock lock = new ReentrantLock();
 
+	private int hash(int key) {
+	    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+	    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+	    key = (key >>> 16) ^ key;
+	    return Math.abs(key) % 3000;
+	}
+	
 	@Override
 	public void put(int value) {
 		lock.lock();
 		try {
-		    Integer key = new Integer(value % 1500);
+		    Integer key = hash(value);
 		
 		    Integer entry = new Integer(value);
 		    Integer existingEntry = hashMap.get(key);
@@ -30,7 +39,7 @@ public class CoarseGrainedRobinHoodHashing implements TableType {
 		    		return;
 		    	}
 		    	
-			    int diff = Math.abs(key - existingEntry % 1500);
+			    int diff = Math.abs(key - hash(existingEntry));
 			    if(diff < probeValue) {
 				    hashMap.put(key, entry);
 				    entry = existingEntry;
@@ -53,7 +62,7 @@ public class CoarseGrainedRobinHoodHashing implements TableType {
 	public void remove(int value) {
 		lock.lock();
 		try {
-		    Integer key = new Integer(value % 1500);
+		    Integer key = hash(value);
 		
 		    Integer entry = hashMap.get(key);
 		    if(entry != null && entry == value) {
@@ -63,7 +72,7 @@ public class CoarseGrainedRobinHoodHashing implements TableType {
 		
 		    while(entry == null || entry != value) {
 			    key = (key + 1) % maxSize;
-			    if(key == value % 1500) {
+			    if(key == hash(value)) {
 			    	return;
 			    }
 			    entry = hashMap.get(key);
@@ -80,15 +89,16 @@ public class CoarseGrainedRobinHoodHashing implements TableType {
 	
 	@Override
 	public boolean get(int value) {
-		int key = value % 1500;
+		int key = hash(value);
 		Integer current = hashMap.get(key);
-		int keyToSearch = (key + 1) % maxSize;
-		while(keyToSearch != key) {
+		List<Integer> keys = new ArrayList<Integer>(hashMap.keySet());
+		int keyToSearch = (keys.indexOf(key) + 1) % keys.size();
+		while(keyToSearch != keys.indexOf(key)) {
 			if(current != null && current == value)
 				return true;
 			
-			keyToSearch = (keyToSearch + 1) % maxSize;
-			current = hashMap.get(key);
+			current = hashMap.get(keys.get(keyToSearch));
+			keyToSearch = (keyToSearch + 1) % keys.size();
 		}
 		
 		if(current != null && current == value)

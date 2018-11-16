@@ -1,5 +1,7 @@
 package concurrentHashTables;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 
@@ -9,10 +11,17 @@ public class FineGrainedRobinHoodHashing implements TableType {
 	ConcurrentHashMap<Integer, Integer> hashMap = new ConcurrentHashMap<Integer, Integer>();
 	int maxSize = 0;
 	static final int probe = 2;
+	
+	int hash(int key) {
+	    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+	    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+	    key = (key >>> 16) ^ key;
+	    return Math.abs(key) % 3000;
+	}
 
 	@Override
 	public void put(int value) {
-		Integer key = value % 1500;
+		Integer key = hash(value);
 		Integer entry = value;
 		
 		Integer existingEntry = hashMap.computeIfAbsent(key, tempKey -> update(value));
@@ -21,7 +30,7 @@ public class FineGrainedRobinHoodHashing implements TableType {
 		}
 		
 		while(existingEntry.intValue() != entry.intValue() && existingEntry != null) {
-			int diff = Math.abs((existingEntry % 1500) - key);
+			int diff = Math.abs(hash(existingEntry) - key);
 			if(diff < probe) {
 				int valToReplace = entry;
 				hashMap.computeIfPresent(key, (tempKey, tempEntry) -> valToReplace);
@@ -41,7 +50,7 @@ public class FineGrainedRobinHoodHashing implements TableType {
 
 	@Override
 	public void remove(int value) {
-		Integer key = value % 1500;
+		Integer key = hash(value);
 		BiFunction<Integer, Integer, Integer> function = (tempKey, tempEntry) -> {
 			if(tempEntry.intValue() == value) {
 				tempEntry = null;
@@ -63,30 +72,29 @@ public class FineGrainedRobinHoodHashing implements TableType {
 			return;
 		}
 		
+		List<Integer> keys = new ArrayList<Integer>(hashMap.keySet());
 		while(existingEntry != null) {
-			key = (key + 1) % maxSize;
-			if(key == value % 1500) {
+			key = keys.get((keys.indexOf(key) + 1) % keys.size());
+			if(key == hash(value)) {
 				return;
 			}
 			
-			if(!hashMap.containsKey(key)) {
-				continue;
-			}
 			existingEntry = hashMap.computeIfPresent(key, function);
 		}
 	}
 	
 	@Override
 	public boolean get(int value) {
-		int key = value % 1500;
+		int key = hash(value);
 		Integer current = hashMap.get(key);
-		int keyToSearch = (key + 1) % maxSize;
-		while(keyToSearch != key) {
+		List<Integer> keys = new ArrayList<Integer>(hashMap.keySet());
+		int keyToSearch = (keys.indexOf(key) + 1) % keys.size();
+		while(keyToSearch != keys.indexOf(key)) {
 			if(current != null && current == value)
 				return true;
 			
-			current = hashMap.get(key);
-			keyToSearch = (keyToSearch + 1) % maxSize;
+			current = hashMap.get(keys.get(keyToSearch));
+			keyToSearch = (keyToSearch + 1) % keys.size();
 		}
 		
 		if(current != null && current == value)
