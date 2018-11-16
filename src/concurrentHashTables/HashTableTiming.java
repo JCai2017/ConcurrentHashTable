@@ -1,5 +1,9 @@
 package concurrentHashTables;
 
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
+
 public class HashTableTiming {
 	private static Thread[] threads = new Thread[3];
 	public static void main(String[] args) {
@@ -19,144 +23,144 @@ public class HashTableTiming {
 		FineGrainedHopscotchHashing fineHopscotch = new FineGrainedHopscotchHashing();
 		
 		long start, end;
-		// Insert 3000 elements into Hashtables
-	    start = System.nanoTime();
-		addElements(javaHashMap);
+		//Insert 3000 elements into Hashtables
+		start = System.nanoTime();
+		addElementsOrdered(javaHashMap);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Java ConcurrentHashMap: " + (end - start));
-		
+
 		start = System.nanoTime();
-		addElements(javaSynch);
+		addElementsOrdered(javaSynch);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Java Collections.synchronizedMap: " + (end - start));
-		
+
 		start = System.nanoTime();
-		addElements(coarseChainTable);
+		addElementsOrdered(coarseChainTable);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Coarse-grained locking Hash table with Chaining: " + (end - start));
-		
+
 		start = System.nanoTime();
-		addElements(fineChainTable);
+		addElementsOrdered(fineChainTable);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Fine-grained locking Hash table with Chaining: " + (end - start));
-		
+
 		start = System.nanoTime();
-		addElements(lockFreeChainTable);
+		addElementsOrdered(lockFreeChainTable);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Lock-free Hash table with Chaining: " + (end - start));
-		
+
 		start = System.nanoTime();
-		addElements(coarseRobin);
+		addElementsOrdered(coarseRobin);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Coarse-grained Robin Hood Hashing: " + (end - start));
-		
+
 		start = System.nanoTime();
-		addElements(fineRobin);
+		addElementsOrdered(fineRobin);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Fine-grained Robin Hood Hashing: " + (end - start));
-		
+
 		start = System.nanoTime();
-		addElements(lockFreeRobin);
+		addElementsOrdered(lockFreeRobin);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Lock-free Robin Hood Hashing: " + (end - start));
 
 		start = System.nanoTime();
-		addElements(coarseCuckoo);
+		addElementsOrdered(coarseCuckoo);
 		end = System.nanoTime();
-		System.out.println("Total time to add 3000 elements from Coarse-grained Cuckoo Hashing: " + (end - start));
+		System.out.println("Total time to add 3000 elements to Coarse-grained Cuckoo Hashing: " + (end - start));
 
 		start = System.nanoTime();
-		addElements(fineCuckoo);
+		addElementsOrdered(fineCuckoo);
 		end = System.nanoTime();
-		System.out.println("Total time to add 3000 elements from Fine-Grained Cuckoo Hashing: " + (end - start));
+		System.out.println("Total time to add 3000 elements to Fine-Grained Cuckoo Hashing: " + (end - start));
 
 		start = System.nanoTime();
-		addElements(lockFreeCuckoo);
+		addElementsOrdered(lockFreeCuckoo);
 		end = System.nanoTime();
-		System.out.println("Total time to add 3000 elements from Lock-Free Cuckoo Hashing: " + (end - start));
+		System.out.println("Total time to add 3000 elements to Lock-Free Cuckoo Hashing: " + (end - start));
 
 		start = System.nanoTime();
-		addElements(coarseHopscotch);
+		addElementsOrdered(coarseHopscotch);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Coarse-grained Hopscotch Hashing: " + (end - start));
 
 		start = System.nanoTime();
-		addElements(fineHopscotch);
+		addElementsOrdered(fineHopscotch);
 		end = System.nanoTime();
 		System.out.println("Total time to add 3000 elements to Fine-Grained Hopscotch Hashing: " + (end - start));
-		
+
 		// Delete 3000 elements from Hashtables (?)
 		start = System.nanoTime();
-		removeElements(javaHashMap);
+		removeElementsOrdered(javaHashMap);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Java ConcurrentHashMap: " + (end - start));
-		
+
 		start = System.nanoTime();
-		removeElements(javaSynch);
+		removeElementsOrdered(javaSynch);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Java Collections.synchronizedMap: " + (end - start));
-		
+
 		start = System.nanoTime();
-		removeElements(coarseChainTable);
+		removeElementsOrdered(coarseChainTable);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Coarse-grained locking Hash table with Chaining: " + (end - start));
-		
+
 		start = System.nanoTime();
-		removeElements(fineChainTable);
+		removeElementsOrdered(fineChainTable);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Fine-grained locking Hash table with Chaining: " + (end - start));
-		
+
 		start = System.nanoTime();
-		removeElements(lockFreeChainTable);
+		removeElementsOrdered(lockFreeChainTable);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Lock-free Hash table with Chaining: " + (end - start));
-		
+
 		start = System.nanoTime();
-		removeElements(coarseRobin);
+		removeElementsOrdered(coarseRobin);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Coarse-grained Robin Hood Hashing: " + (end - start));
-		
+
 		start = System.nanoTime();
-		removeElements(fineRobin);
+		removeElementsOrdered(fineRobin);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Fine-grained Robin Hood Hashing: " + (end - start));
-		
+
 		start = System.nanoTime();
-		removeElements(lockFreeRobin);
+		removeElementsOrdered(lockFreeRobin);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Lock-free Robin Hood Hashing: " + (end - start));
 
 		start = System.nanoTime();
-		removeElements(coarseCuckoo);
+		removeElementsOrdered(coarseCuckoo);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Coarse-grained Cuckoo Hashing: " + (end - start));
 
 		start = System.nanoTime();
-		removeElements(fineCuckoo);
+		removeElementsOrdered(fineCuckoo);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Fine-Grained Cuckoo Hashing: " + (end - start));
 
 		start = System.nanoTime();
-		removeElements(lockFreeCuckoo);
+		removeElementsOrdered(lockFreeCuckoo);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Lock-Free Cuckoo Hashing: " + (end - start));
 
 		start = System.nanoTime();
-		removeElements(coarseHopscotch);
+		removeElementsOrdered(coarseHopscotch);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Coarse-grained Hopscotch Hashing: " + (end - start));
 
 		start = System.nanoTime();
-		removeElements(fineHopscotch);
+		removeElementsOrdered(fineHopscotch);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Fine-Grained Hopscotch Hashing: " + (end - start));
 		
 	}
 	
-	public static void addElements(TableType list) {
-		threads[0] = new Thread(new myThreadAdd(list, 0, 1000));
-		threads[1] = new Thread(new myThreadAdd(list, 1000, 2000));
-		threads[2] = new Thread(new myThreadAdd(list, 2000, 3000));
+	public static void addElementsOrdered(TableType list) {
+		threads[0] = new Thread(new myThreadAdd(list, 0, 1000, false));
+		threads[1] = new Thread(new myThreadAdd(list, 1000, 2000, false));
+		threads[2] = new Thread(new myThreadAdd(list, 2000, 3000, false));
 		
 		threads[1].start(); threads[0].start(); threads[2].start();
         for (Thread thread : threads) {
@@ -168,10 +172,10 @@ public class HashTableTiming {
         }
 	}
 	
-	public static void removeElements(TableType list) {
-		threads[0] = new Thread(new myThreadRm(list, 0, 1000));
-		threads[1] = new Thread(new myThreadRm(list, 1000, 2000));
-		threads[2] = new Thread(new myThreadRm(list, 2000, 3000));
+	public static void removeElementsOrdered(TableType list) {
+		threads[0] = new Thread(new myThreadRm(list, 0, 1000, false));
+		threads[1] = new Thread(new myThreadRm(list, 1000, 2000, false));
+		threads[2] = new Thread(new myThreadRm(list, 2000, 3000, false));
 		
 		threads[1].start(); threads[0].start(); threads[2].start();
         for (Thread thread : threads) {
@@ -181,6 +185,36 @@ public class HashTableTiming {
 				e.printStackTrace();
 			}
         }
+	}
+
+	public static void addElementsShuffled(TableType list) {
+		threads[0] = new Thread(new myThreadAdd(list, 0, 1000, true));
+		threads[1] = new Thread(new myThreadAdd(list, 1000, 2000, true));
+		threads[2] = new Thread(new myThreadAdd(list, 2000, 3000, true));
+
+		threads[1].start(); threads[0].start(); threads[2].start();
+		for (Thread thread : threads) {
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public static void removeElementsShuffled(TableType list) {
+		threads[0] = new Thread(new myThreadRm(list, 0, 1000, true));
+		threads[1] = new Thread(new myThreadRm(list, 1000, 2000, true));
+		threads[2] = new Thread(new myThreadRm(list, 2000, 3000, true));
+
+		threads[1].start(); threads[0].start(); threads[2].start();
+		for (Thread thread : threads) {
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private static class myThreadAdd implements Runnable {
@@ -188,17 +222,27 @@ public class HashTableTiming {
 		TableType list;
 		int start;
 		int end;
+		boolean shuffle;
 		
-		public myThreadAdd(TableType list, int start, int end) {
+		public myThreadAdd(TableType list, int start, int end, boolean shuffle) {
 			this.list = list;
 			this.start = start;
 			this.end = end;
+			this.shuffle = shuffle;
 		}
 
 		@Override
 		public void run() {
-			for(int i = start; i < end; i ++) {
-				list.put(i);
+			if (!shuffle) {
+				for (int i = start; i < end; i++) {
+					list.put(i);
+				}
+			} else {
+				int[] array = IntStream.range(start, end).toArray();
+				shuffle(array);
+				for (int i = 0; i < array.length; i++) {
+					list.put(array[i]);
+				}
 			}
 		}
 		
@@ -209,19 +253,46 @@ public class HashTableTiming {
 		TableType list;
 		int start;
 		int end;
+		boolean shuffle;
 		
-		public myThreadRm(TableType list, int start, int end) {
+		public myThreadRm(TableType list, int start, int end, boolean shuffle) {
 			this.list = list;
 			this.start = start;
 			this.end = end;
+			this.shuffle = shuffle;
 		}
 
 		@Override
 		public void run() {
-			for(int i = start; i < end; i ++) {
-				list.remove(i);
+
+			if (!shuffle) {
+				for (int i = start; i < end; i++) {
+					list.remove(i);
+				}
+			} else {
+				int[] array = IntStream.range(start, end).toArray();
+				shuffle(array);
+				for (int i = 0; i < array.length; i++) {
+					list.remove(array[i]);
+				}
 			}
 		}
 		
 	}
+
+	// Implement Fisher-Yates shuffle
+	private static void shuffle(int[] array) {
+		Random randy = ThreadLocalRandom.current();
+		int idx;
+		int tmp;
+		for (int i = array.length - 1; i > 0; i--) {
+			idx = randy.nextInt(i + 1);
+
+			tmp = array[idx];
+			array[idx] = array[i];
+			array[i] = tmp;
+		}
+
+	}
+	
 }

@@ -53,6 +53,10 @@ public class FineGrainedCuckooHashing implements TableType {
   @Override
   public void put(int value) {
     Integer val = new Integer(value);
+    if (get(value)) {
+      System.out.printf("%d already in hash table.\n", value);
+      return;
+    }
 
     putR(val, 0, 0);
 
@@ -65,7 +69,7 @@ public class FineGrainedCuckooHashing implements TableType {
 
     checkRehashAndUpdateTable();
 
-    int size = getSize();
+    int size = size();
     int cycleSize = (size > maxCycle) ? maxCycle : size;
 
     if (cnt > cycleSize) {
@@ -116,6 +120,25 @@ public class FineGrainedCuckooHashing implements TableType {
 
     putR(swapval, (tableIdx + 1) % nests, cnt + 1);
 
+  }
+
+  public boolean get(int value) {
+    int idx;
+    for (int i = 0; i < nests; i++) {
+      idx = hash(i, value);
+
+      if (tables.get(i).get(idx) != null ) {
+        tables.get(i).get(idx).lock.lock();
+        try {
+          if (tables.get(i).get(idx) != null && tables.get(i).get(idx).equals(value)) {
+            return true;
+          }
+        } finally {
+          tables.get(i).get(idx).lock.unlock();
+        }
+      }
+    }
+    return false;
   }
 
   @Override
@@ -251,7 +274,7 @@ public class FineGrainedCuckooHashing implements TableType {
     }
   }
 
-  private int getSize() {
+  public int size() {
     slock.lock();
     try {
       return size;

@@ -38,6 +38,11 @@ public class CoarseGrainedCuckooHashing implements TableType {
     try {
         Integer val = new Integer(value);
 
+      if (get(value)) {
+        System.out.printf("%d already in hash table.\n", value);
+        return;
+      }
+
         int cycleSize = (size > maxCycle) ? maxCycle : size;
 
         putR(val, 0, 0, cycleSize);
@@ -103,6 +108,23 @@ public class CoarseGrainedCuckooHashing implements TableType {
       }
       //System.out.printf("Value %d not found. No value removed.\n", value);
       return;
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  public boolean get(int value) {
+    lock.lock();
+    int idx;
+    try{
+      for (int i = 0; i < nests; i++) {
+        idx = hash(i, value);
+
+        if (tables.get(i).get(idx) != null && tables.get(i).get(idx).equals(value)) {
+          return true;
+        }
+      }
+      return false;
     } finally {
       lock.unlock();
     }
