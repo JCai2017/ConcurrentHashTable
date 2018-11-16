@@ -1,6 +1,8 @@
 package concurrentHashTables;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -10,14 +12,21 @@ public class LockFreeRobinHoodHashing implements TableType {
 	AtomicInteger maxSize = new AtomicInteger(0);
 	
 	public LockFreeRobinHoodHashing() {
-		for(int i = 0; i < 1500; i++) {
+		for(int i = 0; i < 3000; i++) {
 			hashMap.put(i, new AtomicInteger(-1));
 		}
+	}
+	
+	private int hash(int key) {
+	    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+	    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+	    key = (key >>> 16) ^ key;
+	    return Math.abs(key) % 3000;
 	}
 
 	@Override
 	public void put(int value) {
-		Integer key = value % 1500;
+		Integer key = hash(value);
 		int valToAdd = value;
 		AtomicInteger existingEntry = hashMap.get(key);
 		
@@ -33,14 +42,14 @@ public class LockFreeRobinHoodHashing implements TableType {
 		}
 		
 		while(true) {
-			key = valToAdd % 1500;
+			key = hash(valToAdd);
 			existingEntry = hashMap.get(key);
 			
 			while(existingEntry != null) {
 				int currentVal = existingEntry.get();
 				if(currentVal == valToAdd)
 					return;
-				int diff = Math.abs(currentVal % 1500 - key);
+				int diff = Math.abs(hash(currentVal) - key);
 				if(diff < probeValue) {
 					if(existingEntry.compareAndSet(currentVal, valToAdd)) {
 						valToAdd = currentVal;
@@ -64,7 +73,7 @@ public class LockFreeRobinHoodHashing implements TableType {
 
 	@Override
 	public void remove(int value) {
-		Integer key = value % 1500;
+		Integer key = hash(value);
 		AtomicInteger existingEntry = hashMap.get(key);
 		
 		if(existingEntry == null) {
@@ -72,8 +81,9 @@ public class LockFreeRobinHoodHashing implements TableType {
 		}
 		
 		while(true) {
+			List<Integer> keys = new ArrayList<Integer>(hashMap.keySet());
 			boolean found = false;
-			key = value % 1500;
+			key = hash(value);
 			existingEntry = hashMap.get(key);
 			int entry = existingEntry.get();
 			
@@ -84,13 +94,13 @@ public class LockFreeRobinHoodHashing implements TableType {
 					continue;
 			}
 			
-			key = (key + 1) % maxSize.get();
+			key = keys.get((keys.indexOf(key) + 1) % keys.size());
 			existingEntry = hashMap.get(key);
 			if(existingEntry != null) {
 			    entry = existingEntry.get();
 			}
 			
-			while(key != value % 1500) {
+			while(key != hash(value)) {
 				if(existingEntry != null && existingEntry.get() != -1) {
 					entry = existingEntry.get();
 					if(entry == value) {
@@ -104,7 +114,7 @@ public class LockFreeRobinHoodHashing implements TableType {
 					
 				}
 				
-				key = (key + 1) % maxSize.get();
+				key = keys.get((keys.indexOf(key) + 1) % keys.size());
 				existingEntry = hashMap.get(key);
 			}
 			
@@ -116,18 +126,19 @@ public class LockFreeRobinHoodHashing implements TableType {
 	
 	@Override
 	public boolean get(int value) {
-		int key = value % 1500;
-		AtomicInteger current = hashMap.get(key);
-		int keyToSearch = (key + 1) % maxSize.get();
-		while(keyToSearch != key) {
-			if(current != null && current.get() == value)
+		int key = hash(value);
+		Integer current = hashMap.get(key).get();
+		List<Integer> keys = new ArrayList<Integer>(hashMap.keySet());
+		int keyToSearch = (keys.indexOf(key) + 1) % keys.size();
+		while(keyToSearch != keys.indexOf(key)) {
+			if(current != null && current == value)
 				return true;
 			
-			current = hashMap.get(key);
-			keyToSearch = (keyToSearch + 1) % maxSize.get();
+			current = hashMap.get(keys.get(keyToSearch)).get();
+			keyToSearch = (keyToSearch + 1) % keys.size();
 		}
 		
-		if(current != null && current.get() == value)
+		if(current != null && current == value)
 			return true;
 		
 		return false;

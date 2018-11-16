@@ -7,14 +7,21 @@ public class LockFreeChainHashing implements TableType {
 	private HashMap<Integer, Node> atomicHashMap = new HashMap<>();
 	
 	public LockFreeChainHashing() {
-		for(int i = 0; i < 1500; i++) {
+		for(int i = 0; i < 3000; i++) {
 			atomicHashMap.put(i, new Node(null));
 		}
+	}
+	
+	private int hash(int key) {
+	    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+	    key = ((key >>> 16) ^ key) * 0x45d9f3b;
+	    key = (key >>> 16) ^ key;
+	    return Math.abs(key) % 3000;
 	}
 
 	@Override
 	public void put(int value) {
-		Integer key = value % 1500;
+		Integer key = hash(value);
 		Node n = new Node(value);
 		Node head = atomicHashMap.get(key);
 
@@ -40,7 +47,7 @@ public class LockFreeChainHashing implements TableType {
 
 	@Override
 	public void remove(int value) {
-		Integer key = value % 1500;
+		Integer key = hash(value);
 		Node current = atomicHashMap.get(key);
 		if(current == null || current.next.getReference() == null) {
 			return;
@@ -76,12 +83,14 @@ public class LockFreeChainHashing implements TableType {
 	
 	@Override
 	public boolean get(int value) {
-		int key = value % 1500;
+		int key = hash(value);
 		Node current = atomicHashMap.get(key);
 		if(current != null) {
 			while(current.next != null) {
 				if(current.value != null && current.value == value)
 					return true;
+				
+				current = current.next.getReference();
 			}
 		}
 		
