@@ -269,7 +269,8 @@ public class LockFreeCuckooHashing implements TableType {
 
 
   // Determine whether the key is in the tables
-  public boolean get(Integer val) {
+  @Override
+  public boolean get(int val) {
     int idx0 = hash(0, val);
     int idx1 = hash(1, val);
 
