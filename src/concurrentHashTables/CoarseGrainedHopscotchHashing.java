@@ -50,9 +50,10 @@ public class CoarseGrainedHopscotchHashing implements TableType {
       bucket = hash(val);
 
 
-      if (newPos == null) {
+      while (newPos == null) {
         System.err.printf("Coarse hopscotch -- put: Wasn't able to place %d\n", value);
         resize();
+        newPos = getEmptyBucket(val);
       }
 
       distanceToNeighborhood = getDist(bucket, newPos);
