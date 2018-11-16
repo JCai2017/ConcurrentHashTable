@@ -220,6 +220,204 @@ public class HashTableTiming {
 		removeElementsOrdered(fineHopscotch);
 		end = System.nanoTime();
 		System.out.println("Total time to remove 3000 elements from Fine-Grained Hopscotch Hashing: " + (end - start));
+
+		//Insert 3000 elements into Hashtables
+		start = System.nanoTime();
+		addElementsShuffled(javaHashMap);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Java ConcurrentHashMap: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(javaSynch);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Java Collections.synchronizedMap: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(coarseChainTable);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Coarse-grained locking Hash table with Chaining: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(fineChainTable);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Fine-grained locking Hash table with Chaining: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(lockFreeChainTable);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Lock-free Hash table with Chaining: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(coarseRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Coarse-grained Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(fineRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Fine-grained Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(lockFreeRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Lock-free Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(coarseCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Coarse-grained Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(fineCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Fine-Grained Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(lockFreeCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Lock-Free Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(coarseHopscotch);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Coarse-grained Hopscotch Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		addElementsShuffled(fineHopscotch);
+		end = System.nanoTime();
+		System.out.println("Total time to add 3000 elements to Fine-Grained Hopscotch Hashing: " + (end - start));
+
+		// Get 3000 elements from Hashtables
+		start = System.nanoTime();
+		getElementsShuffled(javaHashMap);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Java ConcurrentHashMap: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(javaSynch);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Java Collections.synchronizedMap: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(coarseChainTable);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Coarse-grained locking Hash table with Chaining: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(fineChainTable);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Fine-grained locking Hash table with Chaining: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(lockFreeChainTable);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Lock-free Hash table with Chaining: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(coarseRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Coarse-grained Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(fineRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Fine-grained Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(lockFreeRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Lock-free Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(coarseCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Coarse-grained Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(fineCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Fine-Grained Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(lockFreeCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Lock-Free Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(coarseHopscotch);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Coarse-grained Hopscotch Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		getElementsShuffled(fineHopscotch);
+		end = System.nanoTime();
+		System.out.println("Total time to get 3000 elements from Fine-Grained Hopscotch Hashing: " + (end - start));
+
+		// Delete 3000 elements from Hashtables
+		start = System.nanoTime();
+		removeElementsShuffled(javaHashMap);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Java ConcurrentHashMap: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(javaSynch);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Java Collections.synchronizedMap: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(coarseChainTable);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Coarse-grained locking Hash table with Chaining: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(fineChainTable);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Fine-grained locking Hash table with Chaining: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(lockFreeChainTable);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Lock-free Hash table with Chaining: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(coarseRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Coarse-grained Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(fineRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Fine-grained Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(lockFreeRobin);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Lock-free Robin Hood Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(coarseCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Coarse-grained Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(fineCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Fine-Grained Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(lockFreeCuckoo);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Lock-Free Cuckoo Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(coarseHopscotch);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Coarse-grained Hopscotch Hashing: " + (end - start));
+
+		start = System.nanoTime();
+		removeElementsShuffled(fineHopscotch);
+		end = System.nanoTime();
+		System.out.println("Total time to remove 3000 elements from Fine-Grained Hopscotch Hashing: " + (end - start));
 		
 	}
 	
