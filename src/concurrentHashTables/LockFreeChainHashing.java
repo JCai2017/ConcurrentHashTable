@@ -74,7 +74,7 @@ public class LockFreeChainHashing implements TableType {
 		}
 	}
 	
-	// Returns specified value
+	@Override
 	public boolean get(int value) {
 		int key = value % 1500;
 		Node current = atomicHashMap.get(key);

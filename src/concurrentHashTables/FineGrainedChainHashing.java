@@ -78,7 +78,7 @@ public class FineGrainedChainHashing implements TableType {
 		}
 	}
 	
-	// Returns specified value
+	@Override
 	public boolean get(int value) {
 		int key = value % 1500;
 		Node current = hashTable.get(key);

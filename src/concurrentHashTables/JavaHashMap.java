@@ -17,6 +17,7 @@ public class JavaHashMap implements TableType {
 		javaHashMap.remove(key, value);
 	}
 	
+	@Override
 	public boolean get(int value) {
 		int key = value % 1500;
 		return (javaHashMap.get(key) == value);
