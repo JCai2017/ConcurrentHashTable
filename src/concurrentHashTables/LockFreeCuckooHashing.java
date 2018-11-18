@@ -3,10 +3,9 @@ package concurrentHashTables;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicStampedReference;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 
 /* Modified from Nguyen and Tsigas, "Lock-Free Cuckoo Hashing" (2014) */
@@ -15,20 +14,12 @@ public class LockFreeCuckooHashing implements TableType {
   private List<List<AtomicStampedReference<Node>>> tables;
 
   // Protect size
-  private final ReentrantLock slock = new ReentrantLock();
   private AtomicInteger size = new AtomicInteger();
 
 
   // Global lock for resizing table
-  private final ReentrantLock rlock = new ReentrantLock();
-  //private final Condition resized = rlock.newCondition();
-  //private final Condition doneAltering = rlock.newCondition();
-  //private boolean resizing = false;
-  //private int rehashDepth = 0;
-  //private Thread resizingThread = null;
-  //private int numAltering = 0;
 
-  private int maxSize = 4999;
+  private int maxSize = 5000;
   private final int maxCycle = 200;
   private Random randy = new Random();
   private int a;
@@ -79,9 +70,6 @@ public class LockFreeCuckooHashing implements TableType {
       tab = find(val, n0, n1);
 
       if (tab != null) {
-        // Update node for val with new "value"
-        // (our value is the Integer, so that doesn't change)
-//        System.out.printf("Lock-free cuckoo state:\n%s\n", this);
         return;
       }
 
@@ -92,7 +80,6 @@ public class LockFreeCuckooHashing implements TableType {
           continue;
         }
         size.getAndIncrement();
-//        System.out.printf("Lock-free cuckoo state:\n%s\n", this);
         return;
       }
 
@@ -101,7 +88,6 @@ public class LockFreeCuckooHashing implements TableType {
           continue;
         }
         size.getAndIncrement();
-//        System.out.printf("Lock-free cuckoo state:\n%s\n", this);
         return;
       }
 
@@ -113,6 +99,7 @@ public class LockFreeCuckooHashing implements TableType {
         continue;
       } else {
         rehash();
+        return;
       }
 
     }
@@ -144,7 +131,7 @@ public class LockFreeCuckooHashing implements TableType {
         }
       } else if (tab.equals(1)) {
         AtomicStampedReference<Node> node1 = tables.get(0).get(idx0);
-        if (!((node1.getReference() == n0.getReference()) || (node1.getReference() != null && node1.getReference().equals(n0.getReference()))) && node1.getStamp() != n0.getStamp()) {
+        if (!((node1.getReference() == n0.getReference()) || (node1.getReference() != null && node1.getReference().equals(n0.getReference())) && node1.getStamp() == n0.getStamp())) {
           continue;
         }
 
@@ -163,6 +150,7 @@ public class LockFreeCuckooHashing implements TableType {
 
   private void rehash() {
     // TODO
+    System.out.printf("Have to rehash\n");
   }
 
   int hash(int fn, int key) {
@@ -172,10 +160,10 @@ public class LockFreeCuckooHashing implements TableType {
 
       return hashval % maxSize;
     } else {
-//      key = ((key >>> 16) ^ key) * 0x45d9f3b;
-//      key = ((key >>> 16) ^ key) * 0x45d9f3b;
-//      key = (key >>> 16) ^ key;
-//      if (key < 0) key = key * -1;
+      key = ((key >>> 16) ^ key) * 0x45d9f3b;
+      key = ((key >>> 16) ^ key) * 0x45d9f3b;
+      key = (key >>> 16) ^ key;
+      if (key < 0) key = key * -1;
       return key % maxSize;
     }
   }
@@ -192,14 +180,19 @@ public class LockFreeCuckooHashing implements TableType {
     int[] s0b = new int[1];
     int[] s1b = new int[1];
 
-    Integer foundTable = null;//new Integer(null);
+    Integer foundTable = null;
 
     while (true) {
       // First-round query
       n0a = tables.get(0).get(idx0).get(s0a);
       t0ref.set(n0a, s0a[0]);
+
+      if (n0a != tables.get(0).get(idx0).getReference()) {
+        continue;
+      }
+
       if (n0a != null) {
-        if (n0a.relocating) {
+        if (n0a.relocating.get()) {
           helpReloc(0, idx0, false);
           continue;
         }
@@ -211,12 +204,18 @@ public class LockFreeCuckooHashing implements TableType {
 
       n1a = tables.get(1).get(idx1).get(s1a);
       t1ref.set(n1a, s1a[0]);
+
+      if (n1a != tables.get(1).get(idx1).getReference()) {
+        continue;
+      }
+
       if (n1a != null) {
-        if (n1a.relocating) {
-          helpReloc(0, idx1, false);
+        if (n1a.relocating.get()) {
+          helpReloc(1, idx1, false);
           continue;
         }
-        if (n1a.value != null && n1a.value.equals(val)) {
+
+        if (n1a.value.equals(val)) {
           if (foundTable != null && foundTable.equals(0)) {
             delDupe(idx0, t0ref, idx1, t1ref);
           } else {
@@ -232,25 +231,31 @@ public class LockFreeCuckooHashing implements TableType {
       // Second-round query
       n0b = tables.get(0).get(idx0).get(s0b);
       t0ref.set(n0b, s0b[0]);
+
+      if (n0b != tables.get(0).get(idx0).getReference()) continue;
+
       if (n0b != null) {
-        if (n0b.relocating) {
+        if (n0b.relocating.get()) {
           helpReloc(0, idx0, false);
           continue;
         }
 
-        if (n0b.value != null && n0b.value.equals(val)){
+        if (n0b.value.equals(val)){
           foundTable = new Integer(0);
         }
       }
 
       n1b = tables.get(1).get(idx1).get(s1b);
       t1ref.set(n1b, s1b[0]);
+
+      if (n1b != tables.get(1).get(idx1).getReference()) continue;
+
       if (n1b != null) {
-        if (n1b.relocating) {
-          helpReloc(0, idx1, false);
+        if (n1b.relocating.get()) {
+          helpReloc(1, idx1, false);
           continue;
         }
-        if (n1b.value != null && n1b.value.equals(val)) {
+        if (n1b.value.equals(val)) {
           if (foundTable.equals(0)) {
             delDupe(idx0, t0ref, idx1, t1ref);
           } else {
@@ -266,7 +271,7 @@ public class LockFreeCuckooHashing implements TableType {
       if (checkCounter(s0a, s1a, s0b, s1b)) {
         continue;
       } else {
-        return null;//new Integer(null);
+        return null;
       }
     }
   }
@@ -287,6 +292,9 @@ public class LockFreeCuckooHashing implements TableType {
     while (true) {
       // First-round query
       n0a = tables.get(0).get(idx0).get(s0a);
+
+      if (!(n0a == tables.get(0).get(idx0).getReference() && s0a[0] == tables.get(0).get(idx0).getStamp())) continue;
+
       if (n0a != null && n0a.value != null && n0a.value.equals(val)) {
         return true;
       }
@@ -322,41 +330,49 @@ public class LockFreeCuckooHashing implements TableType {
   private void helpReloc(int tableIdx, int index, boolean initiator) {
     Node src;
     int[] s0 = new int[1];
-
     Node dst;
     int[] d0 = new int[1];
-
     int hd;
-
     int nCnt;
-    AtomicStampedReference<Node> s, d;
+
     while (true) {
       src = tables.get(tableIdx).get(index).get(s0);
-      while (src == null || (initiator && !src.relocating)) {
+
+      if (!(src == tables.get(tableIdx).get(index).getReference() && (s0[0] == tables.get(tableIdx).get(index).getStamp()))) {
+        continue;
+      }
+
+
+      while (src == null || (initiator && !src.relocating.get())) {
         if (src == null) return;
 
         tables.get(tableIdx).get(index).compareAndSet(src, new Node(src, true), s0[0], s0[0]);
+
         src = tables.get(tableIdx).get(index).get(s0);
+
+        if (!(src == tables.get(tableIdx).get(index).getReference() && s0[0] == tables.get(tableIdx).get(index).getStamp())) continue;
+
       }
 
-      if (src == null || !src.relocating) return;
+      if (src == null || !src.relocating.get()) return;
 
       hd = hash(1 - tableIdx, src.value);
 
       dst = tables.get(1 - tableIdx).get(hd).get(d0);
 
+      // TODO: check stamp too
+      if (!(dst == tables.get(1 - tableIdx).get(hd).getReference() && d0[0] == tables.get(1 - tableIdx).get(hd).getStamp())) continue;
+
       if (dst == null) {
         nCnt = (s0[0] > d0[0]) ? (s0[0] + 1) : (d0[0] + 1);
-        s = new AtomicStampedReference<>(src, s0[0]);
-        d = new AtomicStampedReference<>(dst, d0[0]);
-        if (!(tables.get(tableIdx).get(index).getReference().equals(s.getReference()) && tables.get(tableIdx).get(index).getStamp() != s.getStamp())) {
-          continue;
-        }
 
-        if (tables.get(1 - tableIdx).get(hd).compareAndSet(dst, src, d0[0], nCnt)) {
+        if (!(src == tables.get(tableIdx).get(index).getReference() && s0[0] == tables.get(tableIdx).get(index).getStamp())) continue;
+
+        if (tables.get(1 - tableIdx).get(hd).compareAndSet(dst, new Node(src, false), d0[0], nCnt)) {
           tables.get(tableIdx).get(index).compareAndSet(src, null, s0[0], s0[0] + 1);
           return;
         }
+
       }
 
       if (src.equals(dst)) {
@@ -365,6 +381,7 @@ public class LockFreeCuckooHashing implements TableType {
       }
 
       tables.get(tableIdx).get(index).compareAndSet(src, new Node(src, false), s0[0], s0[0] + 1);
+      return;
     }
   }
 
@@ -375,8 +392,8 @@ public class LockFreeCuckooHashing implements TableType {
     }
 
     // If the entries in the tables are not the same as the passed in references, continue
-    if (!(tables.get(0).get(idx0).getReference().equals(t0ref.getReference()) && tables.get(0).get(idx0).getStamp() != t0ref.getStamp()) &&
-    !(tables.get(1).get(idx1).getReference().equals(t1ref.getReference()) && tables.get(1).get(idx1).getStamp() != t1ref.getStamp())) {
+    if (!(tables.get(0).get(idx0).getReference().equals(t0ref.getReference()) && tables.get(0).get(idx0).getStamp() == t0ref.getStamp()) &&
+    !(tables.get(1).get(idx1).getReference().equals(t1ref.getReference()) && tables.get(1).get(idx1).getStamp() == t1ref.getStamp())) {
       return;
     }
 
@@ -404,7 +421,7 @@ public class LockFreeCuckooHashing implements TableType {
 
     Node pre = null;
     int[] sp = new int[1];
-    int preIdx = -1;  // want to fail here
+    int preIdx = 0;//-1;  // want to fail here
 
     AtomicStampedReference<Node> n;
     AtomicStampedReference<Node> p;
@@ -413,7 +430,7 @@ public class LockFreeCuckooHashing implements TableType {
 
     int destIdx;
 
-    boolean backToPath = false;
+    boolean backToPath;
 
     while (true) {
       found = false;
@@ -422,13 +439,31 @@ public class LockFreeCuckooHashing implements TableType {
       do {
         n0 = tables.get(tbl).get(idx).get(s0);
 
-        while (n0 != null && n0.relocating) {
+        while (n0 != null && n0.relocating.get()) {
           helpReloc(tbl, idx, false);
           n0 = tables.get(tbl).get(idx).get(s0);
         }
 
         n = new AtomicStampedReference<>(n0, s0[0]);
         p = new AtomicStampedReference<>(pre, sp[0]);
+
+        if (!(n0 == tables.get(tbl).get(idx).getReference() && s0[0] == tables.get(tbl).get(idx).getStamp())) {
+          System.out.printf("Starting over??\n");
+          // Start over
+          route = new int[threshold];
+          startLevel = 0;
+          tbl = tableIdx;
+          idx = index;
+          pre = null;
+          preIdx = 0;
+
+          found = false;
+          depth = startLevel;
+
+          continue;
+        }
+
+
         //if (((pre != null) && (n0 != null)) && ((pre.equals(n0) && sp[0] == (s0[0])) || pre.value.equals(n0.value))) {
         if (p.getReference() != null && n.getReference() != null && ((p.getReference().equals(n.getReference()) && p.getStamp() == n.getStamp()) || p.getReference().value.equals(n.getReference().value))) {
           if (tbl == 0) {
@@ -437,6 +472,7 @@ public class LockFreeCuckooHashing implements TableType {
             delDupe(preIdx, p, idx, n);
           }
         }
+
 
         if (n0 != null) {
           route[depth] = idx;
@@ -461,13 +497,13 @@ public class LockFreeCuckooHashing implements TableType {
           n0 = tables.get(tbl).get(idx).get(s0);
           n = new AtomicStampedReference<>(n0, s0[0]);
 
-          if (n.getReference() != null && n.getReference().relocating) {
+          if (n0 != null && n0.relocating.get()) {
             helpReloc(tbl, idx, false);
             n0 = tables.get(tbl).get(idx).get(s0);
             n = new AtomicStampedReference<>(n0, s0[0]);
           }
 
-          if (n.getReference() == null) continue;
+          if (n0 == null) continue;
 
           destIdx = (tbl == 0) ? hash(1, n0.value) : hash(0, n0.value);
           n1 = tables.get(1 - tbl).get(destIdx).get(s1);
@@ -479,7 +515,7 @@ public class LockFreeCuckooHashing implements TableType {
             backToPath = true;
             break;
           }
-          helpReloc(tbl, idx, false);
+          helpReloc(tbl, idx, true);  //false); //???
         }
         if (!backToPath) break;
       }
@@ -511,7 +547,8 @@ public class LockFreeCuckooHashing implements TableType {
   private static class Node {
     Integer value;
     int relocations = 0;
-    boolean relocating = false;
+    int clearedRelocs = 0;
+    AtomicBoolean relocating = new AtomicBoolean();
     boolean newTable = false;
 
     public Node(Integer value) {
@@ -520,20 +557,39 @@ public class LockFreeCuckooHashing implements TableType {
 
     public Node(Node other, boolean relo) {
       value = new Integer(other.value);
-      relocating = relo;
+      relocations = other.relocations;
+      clearedRelocs = other.clearedRelocs;
+
+      if (relo == true) {
+        relocations++;
+        relocating.set(true);
+      } else {
+        relocations--;
+        relocating.set(false);
+      }
+      clearedRelocs = other.clearedRelocs + 1;
     }
+
+//    public Node(Node other, boolean relo) {
+//      value = new Integer(other.value);
+//      relocating.set(relo);
+//    }
 
     public void setVal(Integer value) {
       this.value = value;
     }
 
-    public void setRelo() {
-      relocating = true;
-    }
-
-    public void clearRelo() {
-      relocating = false;
-    }
+//    public Node setRelo() {
+//      relocations++;
+//      relocating.set(true);
+//      return this;
+//    }
+//
+//    public Node clearRelo() {
+//      clearedRelocs++;
+//      relocating.set(false);
+//      return this;
+//    }
 
     public void setNewTable() {
       newTable = true;
