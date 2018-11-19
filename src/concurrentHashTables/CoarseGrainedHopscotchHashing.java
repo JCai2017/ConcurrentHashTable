@@ -56,15 +56,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
         }
       } while (newPos == null);
 
-
-
-//      while (newPos == null) {
-//        System.err.printf("Coarse hopscotch -- put: Wasn't able to place %d\n", value);
-//        resize();
-//        newPos = getEmptyBucket(val);
-//        bucket = hash(val);
-//      }
-
       distanceToNeighborhood = getDist(bucket, newPos);
 
       insertBucket = table.get(newPos);
@@ -84,45 +75,28 @@ public class CoarseGrainedHopscotchHashing implements TableType {
   private Integer getEmptyBucket(Integer val) {
     int i = hash(val);  // starting bucket
     Integer j = new Integer(i);
-    //int swapIdx;
 
     int maxPlacementDist;
     int placementDist;
 
     Node emptyBucket = table.get(j);
-    Node neighborhoodBucket;
-    //int swapNeighborIdx;
-    //boolean swappedbucket = false;
-
-    //boolean flag0 = false;
-    //boolean flag1 = false;
-
 
     // While the buckets we land on are full
     while (emptyBucket.value != null) {
       j = nextBucket(j);
       emptyBucket = table.get(j);
-      //if (j > maxSize) j = 0;  // circular array
     }
 
-    maxPlacementDist = getDist(i,j);
+    maxPlacementDist = getDist(i, j);
 
     while (true) {
-      placementDist = getDist(i,j);
+      placementDist = getDist(i, j);
 
-      //dist = (j >= i) ? j - i : (j + maxSize) - i;
-      //  j within the neighborhood of i
-      //if ((j > i && j - i  < H) || (j < i && (j + maxSize) - i < H) || j == i) {
-      //if (dist < H) {
       if (placementDist > maxPlacementDist) {  // Unable to place val in bucket neighborhood
         return null;
       }
 
       if (isNeighbor(i, j)) {
-        //table.get(j).setBit(0, '1');  // Mark that this bucket has a value
-
-        //table.get(i).setBit(getDist(i,j) + neighborhoodOffset, '1');  // Mark this bucket as full in the neighborhood's map
-
         // Can put value at j
         return j;
       }
@@ -135,96 +109,9 @@ public class CoarseGrainedHopscotchHashing implements TableType {
         return null;
       }
     }
-
-//      // Check if discovered bucket is outside of our neighborhood
-//      if (j - i >= H || ((j < i) && (table.size() - i + j) >= H)) {
-//        flag0 = true;
-//      }
-//
-//      // Find bucket in another neighborhood to begin swapping
-//      if (flag0 && ((hash(table.get(i).value) - j) >= H ||
-//                    (j - hash(table.get(i).value)) >= H ||
-//                    ((j - hash(table.get(i).value) < 0) && (table.size() - hash(table.get(i).value) + j) >= H))) {
-//        flag1 = true;
-//        j = jumpPos(i);
-//        if (j == null) {
-//          return null;
-//        }
-//
-//        i = j;
-//      }
-//
-//      if (j >= table.size()) j = 0;
-//
-//    }
-//
-//    // Set the neighborhood info
-//    if (flag1) {
-//      table.get(j).setVal(new Integer(table.get(i).value));
-//      table.get(j).resetBits();
-//
-//      neighborArr = new char[table.get(j).origH];
-//      table.get(j).setBitArr(neighborArr);
-//
-//      // Start with the bitmap corresponding to this bucket
-//      System.arraycopy(table.get(hash(table.get(i).value)).bits, 0, neighborArr, 0, neighborArr.length);
-//
-//      // Set bit stating that this is occupied
-//      table.get(j).setBit(0, '1');
-//
-//      // If location of the bucket being set wraps around to the front of the array
-//      if (j - hash(table.get(i).value) < 0) {
-//        // Set this position as occupied
-//        table.get(j).setBit((table.size() - hash(table.get(i).value) + j + neighborhoodOffset), '1');
-//      } else {
-//        table.get(j).setBit((j - hash(table.get(i).value) + neighborhoodOffset), '1');
-//      }
-//
-//      table.get(hash(table.get(i).value)).setBitArr(table.get(j).bits);
-//
-//      // Clear the bucket that this was moved from
-//      if (table.get(hash(table.get(i).value)).getBit(i - hash(table.get(i).value) + neighborhoodOffset) == '1') {
-//        table.get(hash(table.get(i).value)).setBit(i - hash(table.get(i).value) + neighborhoodOffset, '0');
-//        table.get(hash(table.get(i).value)).setBit(0, '0');
-//        table.get(hash(table.get(i).value)).resetBits();  // reset bits
-//      }
-//
-//      Integer newVal = new Integer(val);
-//      table.get(i).setVal(newVal);
-//
-//      table.get(i).setBitArr(table.get(hash(newVal)).bits);
-//
-//      if (i - hash(newVal) < 0) {
-//        table.get(i).setBit(table.size() - hash(newVal) + i + neighborhoodOffset, '1');
-//      } else {
-//        table.get(i).setBit(i - hash(newVal) + neighborhoodOffset, '1');
-//      }
-//
-//      j = i;
-//
-//    } else {
-//      if (i != j) {
-//        table.get(j).setVal(val);
-//        table.get(j).resetBits();
-//
-//        table.get(j).setBitArr(table.get(i).bits);
-//
-//        if (j - i < 0) {
-//          table.get(j).setBit(table.size() - i + j + neighborhoodOffset, '1');
-//        } else {
-//          table.get(j).setBit(j - i + neighborhoodOffset, '1');
-//        }
-//        table.get(j).setBit(0, '1'); // Mark this bit as valid
-//      }
-//
-//      table.get(i).setBitArr(table.get(j).bits);
-//      j = i;
-//    }
-//    return j;
   }
 
   private Integer getCloserSwapBucket(int emptyBucketIdx) {
-    int wrongIdx = (emptyBucketIdx - H + 1 < 0) ? emptyBucketIdx - H + 1 : emptyBucketIdx + maxSize - H + 1;
     int swapNeighborIdx = (emptyBucketIdx - H + 1 < 0) ? emptyBucketIdx + maxSize - H + 1 : emptyBucketIdx - H + 1;
     int swapIdx;
 
@@ -233,7 +120,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
     Node swapCandidateBucket;
     int emptyDistanceFromMainBucket;
 
-    //char[] neighborArr;
     char[] emptyNeighborhood = new char[H];
     Arrays.fill(emptyNeighborhood, '0');
 
@@ -241,7 +127,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
     for (; isNeighbor(swapNeighborIdx, emptyBucketIdx); swapNeighborIdx = nextBucket(swapNeighborIdx)) {
       // Find a value that can go into this bucket instead
       // Get the neighborhood information
-      //neighborArr = neighborhoodBucket.bits;
       neighborhoodBucket = table.get(swapNeighborIdx);
       emptyDistanceFromMainBucket = getDist(swapNeighborIdx, emptyBucketIdx);
 
@@ -255,10 +140,10 @@ public class CoarseGrainedHopscotchHashing implements TableType {
         continue;
       }
 
-      // Make sure that the character arrays are properly maintaining neighborhood info
-      if (neighborhoodBucket.getBit(emptyDistanceFromMainBucket) != '0') {
-        //System.err.printf("getSwapBucket: Character array not being properly maintained\n");
-      }
+//      // Make sure that the character arrays are properly maintaining neighborhood info
+//      if (neighborhoodBucket.getBit(emptyDistanceFromMainBucket) != '0') {
+//        //System.err.printf("getSwapBucket: Character array not being properly maintained\n");
+//      }
 
       swapIdx = swapNeighborIdx;
       // Check for the earliest occurrence of a value within this neighborhood
@@ -285,67 +170,9 @@ public class CoarseGrainedHopscotchHashing implements TableType {
         swapIdx = nextBucket(swapIdx);  // Set swapIdx to the next
         if (!isNeighbor(swapIdx, emptyBucketIdx)) break;
       }
-
-      // Some other thread could have removed this value before this point
-//        if (table.get(swapIdx).value == null) {
-//          if (table.get(swapIdx).getBit(0) != '0') {
-//            System.err.printf("getEmptyBucket: Value is null but bit says occupied!\n");
-//          }
-//          // Use swapIdx as next empty bucket
-//          j = swapIdx;
-//          break;
-//        } else if (isNeighbor(hash(table.get(swapIdx).value), j)) {
-//          // Set this value
-//          table.get(j).setVal(table.get(swapIdx).value);
-//
-//          // Mark this bucket as occupied
-//          table.get(j).setBit(0, '1');
-//
-//          // Mark this neighbor as occupied in swapIdx's original bucket
-//          table.get(hash(table.get(swapIdx).value)).setNeighborBit(getDist(hash(table.get(swapIdx).value), j), '1');
-//
-//          // Mark swapIdx as unoccupied in swapIdx's original bucket
-//          table.get(hash(table.get(swapIdx).value)).setNeighborBit(getDist(hash(table.get(swapIdx).value), swapIdx), '0');
-//
-//          // Use swapIdx as next empty bucket
-//          j = swapIdx;
-//          break;
-//
     }
     return null;
   }
-
-//  private Integer jumpPos(int start) {
-//    int pos = start + 1;
-//    Integer c = checkBits(pos);
-//
-//    while (c == null) {
-//      if (pos >= table.size()) {
-//        pos = 0;
-//        c = checkBits(pos);
-//      }
-//
-//      if (pos == start) {
-//        return null;
-//      }
-//
-//      c = checkBits(pos++);
-//    }
-//
-//    return c;
-//  }
-//
-//  private Integer checkBits(int pos) {
-//    if (table.get(pos).value != null && table.get(pos).getBit(0) == '1') {
-//      for (int i = neighborhoodOffset; i < table.get(pos).bits.length; i++) {
-//        if (table.get(pos).getBit(i) == '1') {
-//          return new Integer(pos + i);
-//        }
-//      }
-//    }
-//    return null;
-//  }
-
 
   @Override
   public boolean get(int value) {
@@ -377,18 +204,9 @@ public class CoarseGrainedHopscotchHashing implements TableType {
             return idx;
           }
         }
-        // TODO
-//        else {
-//          other = table.get(idx).value;
-////          System.out.printf("Why isn't this happening????\n");
-//          //System.out.printf("Other: %d\n", other);
-//        }
         idx = nextBucket(idx);
       }
-      // TODO:
       return null;
-      //putNoCheck(value);
-      //return getIdx(value);
     } finally {
       lock.unlock();
     }
@@ -403,18 +221,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
     Node neighborhoodBucket;
     Node foundBucket;
     try {
-//      Integer val = new Integer(value);
-//      idx = hash(val);
-      // Fill positions
-//      for (int i = 0; i <= H; i++) {
-//        if (table.get(idx + i) == null) continue;
-//        if (table.get(idx + i).equals(val)) {
-//          table.get(idx + i).value = null;
-//          table.get(idx + i).resetBits();
-//          size--;
-//          return;
-//        }
-
       idx = getIdx(value);
 
       if (idx == null) {
@@ -428,18 +234,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
       neighborhoodBucket = table.get(neighborhoodBucketIdx);
 
       distanceToNeighborhood = getDist(neighborhoodBucketIdx, idx);
-
-//      table.get(j).setVal(table.get(swapIdx).value);
-//      table.get(j).setBit(0,'1');
-//
-//      // Set this value as occupied
-//      table.get(swapNeighborIdx).setNeighborBit(getDist(swapNeighborIdx, j), '1');
-//
-//      // Reset the value in this entry
-//      table.get(swapNeighborIdx).setNeighborBit(i, '0');
-//      table.get(swapIdx).setVal(null);
-//      table.get(swapIdx).setBit(0, '0');
-//      return swapIdx;
 
       neighborhoodBucket.setNeighborBit(distanceToNeighborhood, '0');
       foundBucket.setVal(null);
@@ -473,7 +267,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
   private int getLog2(int x) {
     double temp = Math.log((double) x) / Math.log((2.0));
     temp = Math.ceil(temp);
-//    System.out.printf("Log is %d\n", (int)temp);
     return (int) temp;
   }
 
@@ -486,14 +279,11 @@ public class CoarseGrainedHopscotchHashing implements TableType {
   // Deal with circular array
   private boolean isNeighbor(int i, int j) {
     // check if j is within neighborhood of i using circular array
-    return (getDist(i,j) < H);//(j < i ? (j + maxSize - i < H) : (j - i < H));
+    return (getDist(i,j) < H);
   }
 
   private int nextBucket(int x) {
-    int next = (x + 1 >= maxSize) ? x + 1 - maxSize : x + 1;
-    if (next > 4990) {
-      //System.out.printf("Something fishy.\n");
-    }
+    //int next = (x + 1 >= maxSize) ? x + 1 - maxSize : x + 1;
     return ((x + 1 >= maxSize) ? x + 1 - maxSize : x + 1);
   }
 
@@ -508,7 +298,6 @@ public class CoarseGrainedHopscotchHashing implements TableType {
   public String toString() {
     lock.lock();
     try {
-      //System.out.printf("Inside toString\n");
       StringBuilder str = new StringBuilder();
       for (int i = 0; i < maxSize; i++) {
         if (table.get(i).value != null) {

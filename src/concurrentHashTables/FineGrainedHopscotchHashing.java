@@ -11,7 +11,6 @@ public class FineGrainedHopscotchHashing implements TableType {
   private final ReentrantLock slock = new ReentrantLock();
   private int size = 0;
 
-  private final ReentrantLock rlock = new ReentrantLock();
   private int maxSize = 5000;
   private final int neighborhoodOffset = 2;
   private int H = 2 * getLog2(maxSize);
@@ -55,8 +54,6 @@ public class FineGrainedHopscotchHashing implements TableType {
       table.put(newPos, new Node(val));
       insertBucket = table.get(newPos);
     } else {
-      //System.err.printf("Nodes may not be getting deleted properly\n");
-      // Just kidding; usually don't want to delete nodes bc they contain neighborhood information
       insertBucket.setVal(val);
     }
     neighborhoodBucket = table.get(bucketIdx);
@@ -65,13 +62,6 @@ public class FineGrainedHopscotchHashing implements TableType {
     neighborhoodBucket.setNeighborBit(distanceToNeighborhood, '1');
 
     incrementSize();
-
-    //TODO
-//    if (getSize() != table.size()) {
-//      System.err.printf("SIZES DON'T MATCH UP??? May not have successfully added %d\n", val);
-//    }
-
-    //System.out.printf("Successfully placed %d at key %d\n", value, key);
   }
 
   private Integer getEmptyBucket(Integer val) {
@@ -82,7 +72,6 @@ public class FineGrainedHopscotchHashing implements TableType {
     int placementDist;
 
     Node emptyBucket = table.get(j);
-    Node neighborhoodBucket;
 
     // While buckets are occupied
     while (emptyBucket != null && emptyBucket.value != null) {
@@ -184,7 +173,7 @@ public class FineGrainedHopscotchHashing implements TableType {
     idx = getIdx(value);
 
     if (idx == null) {
-      //System.out.printf("Fine-grained: Value %d not found in expected bucket %d. No value removed.\n", value, hash(value));
+//      System.out.printf("Fine-grained: Value %d not found in expected bucket %d. No value removed.\n", value, hash(value));
       return;
     }
 
@@ -208,7 +197,6 @@ public class FineGrainedHopscotchHashing implements TableType {
     int idx = bucket;
     Node neighborhoodBucket;
     Node occupiedBucket;
-    //Integer realkey;
 
     neighborhoodBucket = table.get(bucket);
     if (neighborhoodBucket == null) {
@@ -249,11 +237,7 @@ public class FineGrainedHopscotchHashing implements TableType {
   }
 
   int hash(int key) {
-    key = ((key >>> 16) ^ key) * 0x45d9f3b;
-    key = ((key >>> 16) ^ key) * 0x45d9f3b;
-    key = (key >>> 16) ^ key;
-    return key % maxSize;
-    //return (key % 1500 % buckets) * H;
+    return (key % 1500 % buckets) * H;
   }
 
   private int getLog2(int x) {
@@ -272,14 +256,11 @@ public class FineGrainedHopscotchHashing implements TableType {
   // Deal with circular array
   private boolean isNeighbor(int i, int j) {
     // check if j is within neighborhood of i using circular array
-    return (getDist(i,j) < H);//(j < i ? (j + maxSize - i < H) : (j - i < H));
+    return (getDist(i,j) < H);
   }
 
   private int nextBucket(int x) {
-    int next = (x + 1 >= maxSize) ? x + 1 - maxSize : x + 1;
-    if (next > 4990) {
-      //System.out.printf("Something fishy.\n");
-    }
+//    int next = (x + 1 >= maxSize) ? x + 1 - maxSize : x + 1;
     return ((x + 1 >= maxSize) ? x + 1 - maxSize : x + 1);
   }
 

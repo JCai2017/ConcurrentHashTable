@@ -214,7 +214,6 @@ public class FineGrainedCuckooHashing implements TableType {
     try {
       if (resizing != false && !resizingThread.equals(Thread.currentThread())) {
         // Wait for other thread to finish resizing
-        //System.out.printf("Inside rehash but other thread set resize to true...\n");
         numAltering--;
         doneAltering.signal();
         while (resizing) {

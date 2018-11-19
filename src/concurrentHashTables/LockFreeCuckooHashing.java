@@ -20,7 +20,7 @@ public class LockFreeCuckooHashing implements TableType {
   // Global lock for resizing table
 
   private int maxSize = 5000;
-  private final int maxCycle = 200;
+  private final int maxCycle = 1000;
   private Random randy = new Random();
   private int a;
   private int b;
@@ -570,26 +570,9 @@ public class LockFreeCuckooHashing implements TableType {
       clearedRelocs = other.clearedRelocs + 1;
     }
 
-//    public Node(Node other, boolean relo) {
-//      value = new Integer(other.value);
-//      relocating.set(relo);
-//    }
-
     public void setVal(Integer value) {
       this.value = value;
     }
-
-//    public Node setRelo() {
-//      relocations++;
-//      relocating.set(true);
-//      return this;
-//    }
-//
-//    public Node clearRelo() {
-//      clearedRelocs++;
-//      relocating.set(false);
-//      return this;
-//    }
 
     public void setNewTable() {
       newTable = true;

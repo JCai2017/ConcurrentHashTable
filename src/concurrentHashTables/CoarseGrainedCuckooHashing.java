@@ -59,7 +59,6 @@ public class CoarseGrainedCuckooHashing implements TableType {
 
 
     if (cnt > max) {
-      //System.out.printf("%d unpositioned. Cycle present. REHASH.\n", val);
       rehash();
 
       putR(val, 0, 0, max);
